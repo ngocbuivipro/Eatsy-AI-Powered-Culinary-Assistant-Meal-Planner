@@ -127,6 +127,8 @@ erDiagram
         ObjectId _id PK
         String name
         String email UK
+        String authProvider "local/google/apple"
+        String googleId UK "Optional"
         Object dietaryPreferences
         Object healthGoals
     }
@@ -201,7 +203,8 @@ const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: [true, "Mật khẩu không được để trống"],
+      // ⚠️ Đã gỡ bỏ required: true để cho phép đăng nhập Google/Apple không cần mật khẩu.
+      // Việc kiểm tra bắt buộc nhập mật khẩu sẽ được thực hiện tại Controller ở luồng Đăng ký Local.
       minlength: [6, "Mật khẩu phải có ít nhất 6 ký tự"],
       select: false, // ⚠️ QUAN TRỌNG: mặc định KHÔNG trả password khi query
     },
@@ -209,6 +212,23 @@ const userSchema = new mongoose.Schema(
     avatarUrl: {
       type: String,
       default: "", // ảnh đại diện, mặc định rỗng
+    },
+
+    // --- Xác thực bên thứ 3 (OAuth) ---
+    authProvider: {
+      type: String,
+      enum: ["local", "google", "apple"],
+      default: "local",
+    },
+    googleId: {
+      type: String,
+      sparse: true, // Cho phép nhiều user bỏ trống giá trị này
+      unique: true, // Nếu có thì không được trùng
+    },
+    appleId: {
+      type: String,
+      sparse: true,
+      unique: true,
     },
 
     // --- Tùy chọn ăn uống (cá nhân hóa AI) ---
