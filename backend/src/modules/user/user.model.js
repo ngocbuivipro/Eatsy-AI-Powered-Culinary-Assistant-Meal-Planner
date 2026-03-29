@@ -26,7 +26,8 @@ const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: [true, "Mật khẩu không được để trống"],
+      // Không để required ở Schema nữa, vì user đăng nhập Google/Apple sẽ không có mật khẩu.
+      // Sẽ validate bắt buộc phải có mật khẩu ở riêng Controller của bước Đăng ký truyền thống (Local).
       minlength: [6, "Mật khẩu phải có ít nhất 6 ký tự"],
       select: false, // mặc định KHÔNG trả password khi query
     },
@@ -34,6 +35,23 @@ const userSchema = new mongoose.Schema(
     avatarUrl: {
       type: String,
       default: "",
+    },
+
+    // --- Xác thực bên thứ 3 (OAuth) ---
+    authProvider: {
+      type: String,
+      enum: ["local", "google", "apple"],
+      default: "local",
+    },
+    googleId: {
+      type: String,
+      sparse: true, // Cho phép nhiều user không có googleId (giá trị là undefined/null)
+      unique: true,
+    },
+    appleId: {
+      type: String,
+      sparse: true,
+      unique: true,
     },
 
     // --- Tùy chọn ăn uống (cá nhân hóa AI) ---
