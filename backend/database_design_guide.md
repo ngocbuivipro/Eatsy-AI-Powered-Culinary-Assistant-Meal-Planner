@@ -86,104 +86,72 @@ Từ README của Eatsy, mình xác định được các **thực thể** (enti
 
 ---
 
-## 🗺️ Phần 3: Sơ Đồ Quan Hệ Thực Thể (ERD)
+## 🗺️ Phần 3: Sơ Đồ Quan Hệ (Query-Driven Design)
+
+> [!TIP]
+> **🚀 THỰC TẾ PRODUCTION: Đừng quá bám vào ERD!**
+> Trong SQL, thiết kế bắt đầu bằng ERD (Entity-Relationship Diagram) — làm sao để dữ liệu không bị lặp lại (Chuẩn hóa).  
+> **Trong MongoDB, thiết kế bắt đầu bằng Câu Truy Vấn (Query-Driven Design)** — làm sao để app lấy dữ liệu nhanh nhất, kể cả khi phải lưu lặp lại (Denormalization).
+
+### 3.1 Nhận diện các truy vấn cốt lõi (Core Queries)
+Trước khi vẽ sơ đồ Database, chúng ta phải hỏi: "App Eatsy sẽ query data như thế nào nhiều nhất?"
+
+1. **Tìm món ăn từ nguyên liệu (Ingredient-based search):** Truy vấn tần suất cực cao. Cần tìm Recipe dựa trên mảng IDs nguyên liệu mà User có.
+2. **Cá nhân hóa theo User (Personalized recommendation):** Query Recipe khớp với `dietaryPreferences` của User.
+3. **Truy vấn Context cho AI Chat:** Lấy toàn bộ thực trạng của user (nguyên liệu dư thừa, độ tuổi, diet) trong 1 query duy nhất để gắn vào Prompt LLM nhanh nhất.
+
+### 3.2 Sơ đồ Quan hệ (Dựa trên Query)
 
 ```mermaid
 erDiagram
-    USER ||--o{ RECIPE : "tạo"
-    USER ||--o| PANTRY : "sở hữu"
-    USER ||--o{ MEAL_PLAN : "lập"
-    USER ||--o{ CHAT_SESSION : "trò chuyện"
-    USER ||--o{ SAVED_RECIPE : "lưu"
-    RECIPE }o--o{ CATEGORY : "thuộc"
-    MEAL_PLAN ||--|{ MEAL_PLAN_ITEM : "chứa"
-    MEAL_PLAN_ITEM }o--|| RECIPE : "dùng"
-    PANTRY ||--|{ PANTRY_ITEM : "chứa"
-    CHAT_SESSION ||--|{ CHAT_MESSAGE : "gồm"
+    %% Core Entities
+    USER ||--o{ RECIPE : "tạo (Reference)"
+    USER ||--o| PANTRY : "sở hữu (Reference)"
+    USER ||--o{ MEAL_PLAN : "lập (Reference)"
+    USER ||--o{ CHAT_SESSION : "trò chuyện (Reference)"
+    USER ||--o{ SAVED_RECIPE : "lưu lại (Embed)"
+    RECIPE }o--o{ CATEGORY : "thuộc (Reference)"
+    
+    %% Denormalization focus
+    RECIPE ||--|{ INGREDIENT_EMBED : "nhúng để render UI (Embed)"
+    RECIPE ||--|{ INGREDIENT_REF : "mảng IDs để query (Reference)"
+    
+    MEAL_PLAN ||--|{ MEAL_PLAN_ITEM : "chứa (Embed)"
+    MEAL_PLAN_ITEM }o--|| RECIPE : "dùng (Reference)"
+    
+    PANTRY ||--|{ PANTRY_ITEM : "chứa (Embed)"
+    CHAT_SESSION ||--|{ CHAT_MESSAGE : "gồm (Embed)"
+    CHAT_SESSION ||--|| CHAT_SNAPSHOT : "lưu trạng thái tĩnh (Embed)"
 
     USER {
         ObjectId _id PK
         String name
         String email UK
-        String password
-        String avatarUrl
         Object dietaryPreferences
         Object healthGoals
-        Date createdAt
     }
 
     RECIPE {
         ObjectId _id PK
         String title
-        String description
-        ObjectId author FK
-        Array ingredients
+        Array ingredient_ids "🚀 [MỚI] Index Array để query cực nhanh"
+        Array ingredients "🚀 [MỚI] Nhúng data để Render không cần JOIN"
         Array steps
         Object nutrition
-        String difficulty
-        Number prepTime
-        Number cookTime
-        Number servings
         Array categories
-        String imageUrl
-        Number averageRating
-        Date createdAt
     }
 
     PANTRY {
         ObjectId _id PK
         ObjectId userId FK
-        Array items
-        Date updatedAt
-    }
-
-    PANTRY_ITEM {
-        String name
-        Number quantity
-        String unit
-        Date expiryDate
-    }
-
-    CATEGORY {
-        ObjectId _id PK
-        String name UK
-        String slug UK
-        String icon
-        String type
-    }
-
-    MEAL_PLAN {
-        ObjectId _id PK
-        ObjectId userId FK
-        Date startDate
-        Date endDate
-        String title
-        Array meals
-    }
-
-    MEAL_PLAN_ITEM {
-        String mealType
-        ObjectId recipeId FK
-        Date date
+        Array items "Chỉ là kho lưu trữ, KHÔNG phải AI Engine!"
     }
 
     CHAT_SESSION {
         ObjectId _id PK
         ObjectId userId FK
-        String title
+        Object context_snapshot "🚀 [MỚI] Lưu Diet, Goals & Ingredients lúc chat"
         Array messages
-        Date createdAt
-    }
-
-    CHAT_MESSAGE {
-        String role
-        String content
-        Date timestamp
-    }
-
-    SAVED_RECIPE {
-        ObjectId recipeId FK
-        Date savedAt
     }
 ```
 
@@ -286,6 +254,11 @@ const userSchema = new mongoose.Schema(
     },
 
     // --- Công thức đã lưu (bookmark) ---
+    // 🚀 THỰC TẾ PRODUCTION: "Sự phân vân giữa Embed và Reference"
+    // Khi một mảng lớn vượt tầm kiểm soát, Document sẽ quá tải (limit 16MB của Mongo).
+    // Nếu app cho phép user lưu 10,000 công thức, nhúng mảng này sẽ làm query User chạy chậm.
+    // Tạm thời để nhúng (vì người dùng bình thường hiếm khi bookmark > 500 bài).
+    // NHƯNG nếu app scale, bắt buộc phải tách sang Collection "SavedRecipe".
     savedRecipes: [
       {
         recipeId: {
@@ -419,6 +392,19 @@ const recipeSchema = new mongoose.Schema(
     },
 
     // --- Nội dung chính ---
+    // 🚀 THỰC TẾ PRODUCTION: Lưu danh sách ID để index và query tốc độ cao
+    // Tại sao? Để query: "Tìm món có Mảng này giao với Số nguyên liệu User có" ($in)
+    ingredient_ids: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Ingredient", 
+      },
+    ],
+
+    // 🚀 THỰC TẾ PRODUCTION: Nhúngẵn dữ liệu để render UI
+    // Tại sao lại lưu lặp lại 2 lần? 
+    // Trong SQL đây gọi là dư thừa. Nhưng trong MongoDB, việc lưu nguyên liệu vào luôn
+    // Recipe giúp FE tải cục JSON về là vẽ được list ngay, không tốn thêm 1 thẻ JOIN ($lookup) đắt đỏ!
     ingredients: {
       type: [ingredientSchema], // mảng nguyên liệu (nhúng)
       validate: {
@@ -477,6 +463,11 @@ const recipeSchema = new mongoose.Schema(
     },
 
     // --- Đánh giá ---
+    // 🚀 THỰC TẾ PRODUCTION: Embedded Array Pattern (Chống chỉ định mảng vô cực - Unbounded Arrays)
+    // Nếu món ăn nổi tiếng và có 50,000 lượt review? Toàn bộ ổ đĩa DB sẽ crash khi đọc Document này!
+    // -> Giải pháp 1: Giới hạn mảng nhúng này chỉ chứa "10 reviews mới nhất" để UI load nhanh ngay.
+    // -> Giải pháp 2 (Scale): Tách toàn bộ Review sang 1 Collection riêng (`Review`) để Pagination.
+    // Tạm thời ở V1 ta để embedded, nhưng phải cảnh giác!
     reviews: [reviewSchema],
     averageRating: { type: Number, default: 0, min: 0, max: 5 },
     totalReviews: { type: Number, default: 0 },
@@ -505,7 +496,11 @@ recipeSchema.index({ author: 1 });
 recipeSchema.index({ categories: 1 });
 recipeSchema.index({ difficulty: 1 });
 recipeSchema.index({ averageRating: -1 }); // sắp xếp giảm dần
-recipeSchema.index({ "ingredients.name": 1 }); // tìm theo tên nguyên liệu
+
+// ⚠️ DEPRECATED - KHÔNG BAO GIỜ tìm kiếm màng filter string như: `{"ingredients.name": 1}`
+// Lỗi phổ biến của Junior là sử dụng string match. Rất dễ sai chính tả, mất dấu, và không phân loại.
+// 🚀 THỰC TẾ PRODUCTION: Luôn thiết lập Multikey Index cho các mảng quy chuẩn qua ObjectId.
+recipeSchema.index({ ingredient_ids: 1 }); // query `Find by Ingredients` từ Spoonacular ID siêu việt
 
 // ═══════════════════════════════════════════════
 // 🔧 VIRTUAL — Tổng thời gian nấu
@@ -522,15 +517,17 @@ export default Recipe;
 ```
 
 > [!TIP]
-> **Embedding vs Referencing — Khi nào nhúng, khi nào tham chiếu?**
+> **Embedding vs Referencing — Góc Nhìn Production**
 >
 > | Chiến lược | Khi nào dùng | Ví dụ trong Eatsy |
 > |-----------|------------|-------------------|
-> | **Embed** (nhúng) | Dữ liệu con luôn đi kèm cha, ít thay đổi | `ingredients` nhúng trong `Recipe` |
-> | **Reference** (tham chiếu) | Dữ liệu con độc lập, dùng ở nhiều nơi | `author` tham chiếu đến `User` |
+> | **Embed** (nhúng) | Dữ liệu con luôn đi kèm cha, ít thay đổi, đọc thường xuyên | `ingredients` nhúng trong `Recipe` để tải UI nhanh |
+> | **Reference** (tham chiếu) | Dữ liệu con độc lập, file rất to, hoặc cần query chéo nhiều nơi | `ingredient_ids` tham chiếu dùng riêng cho Query Matching. `author` độc lập (User) |
 >
-> → Nguyên liệu của một recipe **luôn đi cùng** recipe đó → **Embed**
-> → User tạo nhiều recipe, và user tồn tại độc lập → **Reference**
+> 💡 *Quy tắc:* Dữ liệu read-heavy thì *Embed* luôn cho lẹ, kể cả có Duplicate. Dữ liệu thay đổi liên tục và query nhiều chỗ thì *Reference*.
+> 
+> 🔄 **Vấn Đề Đồng Bộ (Data Synchronization):** Nếu bạn nhúng `name`, `unit` của nguyên liệu vào `Recipe`, lỡ Admin sửa "Thịt Heo" thành "Thịt Lợn" bên bảng `Ingredient` thì sao?
+> * **Giải pháp Thực Tế:** Sự Đánh Đổi. Ở `Recipe` cũ chứa text Stale Data (lỗi thời) mà load siêu lẹ. Nếu muốn chuẩn luôn, hãy móc Event vào Job queue (Background Job như BullMQ / Cron) để chạy tool update background vào ban đêm. Rất phổ biến!
 
 ---
 
@@ -548,9 +545,17 @@ import mongoose from "mongoose";
 // Sub-schema cho từng item trong tủ
 const pantryItemSchema = new mongoose.Schema(
   {
+    ingredient_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Ingredient",
+      required: [true, "ID nguyên liệu không được để trống"],
+    },
+    // 🚀 THỰC TẾ PRODUCTION: Lưu kèm tên (Denormalization) để UI vẽ nhanh danh sách
+    // mà không cần phải chạy lệnh $lookup đắt đỏ sang collection Ingredient.
+    // LƯU Ý: Tuyệt đối KHÔNG dùng field này để search!
     name: {
-      type: String,
-      required: [true, "Tên nguyên liệu không được để trống"],
+      type: String, // Tên được sao chép lúc user thêm vào tủ
+      required: true,
       trim: true,
     },
     quantity: {
@@ -563,21 +568,7 @@ const pantryItemSchema = new mongoose.Schema(
       required: true,
       enum: ["gram", "kg", "ml", "liter", "piece", "tbsp", "tsp", "cup"],
     },
-    category: {
-      type: String,
-      enum: [
-        "vegetable",   // Rau củ
-        "fruit",       // Trái cây
-        "meat",        // Thịt
-        "seafood",     // Hải sản
-        "dairy",       // Sữa/bơ/phô mai
-        "grain",       // Ngũ cốc
-        "spice",       // Gia vị
-        "sauce",       // Nước sốt
-        "other",       // Khác
-      ],
-      default: "other",
-    },
+    // Category đã bị xóa vì nó thuộc về bảng Ingredient (nguyên tắc Single Source of Truth)
     expiryDate: {
       type: Date, // Ngày hết hạn — giúp giảm lãng phí thức ăn!
     },
@@ -609,7 +600,7 @@ const pantrySchema = new mongoose.Schema(
 // 📇 INDEXES
 // ═══════════════════════════════════════════════
 pantrySchema.index({ userId: 1 });
-pantrySchema.index({ "items.name": 1 }); // tìm nguyên liệu theo tên
+pantrySchema.index({ "items.ingredient_id": 1 }); // tìm nguyên liệu theo ID
 pantrySchema.index({ "items.expiryDate": 1 }); // tìm nguyên liệu sắp hết hạn
 
 // ═══════════════════════════════════════════════
@@ -620,11 +611,10 @@ export default Pantry;
 ```
 
 > [!IMPORTANT]
-> **Tại sao tách Pantry ra khỏi User?**
-> Nếu nhúng `items[]` vào User document, khi user có 100+ nguyên liệu → document quá lớn → query chậm. Tách ra giúp:
-> 1. User document nhẹ nhàng
-> 2. Query pantry riêng khi cần
-> 3. Dễ phân quyền API
+> **Pantry LÀ KHO, KHÔNG PHẢI LÀ MATCHING ENGINE!**
+> Beginner thường nghĩ: "Mình sẽ query db lấy Pantry, rồi đi $lookup qua Recipe để AI tìm". KHÔNG! 
+> 
+> Trong Production: Pantry là UI State (Kho hiển thị). Trách nhiệm của hệ thống là **đẩy nhẹ gánh nặng logic cho Backend API**. Layer NodeJS sẽ lo vòng lặp chạy biến lấy hết mảng `ingredient_id` từ `Pantry.items`, đóng riêng mảng này rồi gọi lệnh thứ hai `Recipe.find({ ingredient_ids: { $in: userIngIds } })` từ MongoDB. Tuyệt đối hạn chế bắt cấu trúc DB tự Join/Lookup ngầm trong DB! Tách bạch DB và Logic API.
 
 ---
 
@@ -786,9 +776,24 @@ const chatSessionSchema = new mongoose.Schema(
     },
     messages: [messageSchema], // mảng tin nhắn
 
-    // Ngữ cảnh AI — lưu lại context để AI "nhớ" cuộc hội thoại
-    context: {
-      // AI đang giúp về chủ đề gì?
+    // 🚀 THỰC TẾ PRODUCTION: Lưu trữ ngữ cảnh tĩnh (Snapshot)
+    // AI yêu cầu truy xuất cực nhanh. Việc snapshot lại các dữ liệu tĩnh 
+    // như nguyên liệu đang có, mục tiêu và chế độ ăn của user sẽ giúp backend 
+    // KHÔNG phải chạy 3 query phụ (User, Pantry, Goals) chắp vá khi build prompt!
+    context_snapshot: {
+      ingredient_ids: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: "Ingredient",
+        default: [], // Lấy danh sách ID từ thẻ Pantry dán vào để chuẩn hóa
+      },
+      userDiet: {
+        type: String,
+        default: "omnivore", // Sao chép từ User record
+      },
+      userGoals: {
+        type: String,
+        default: "maintain", // Sao chép từ User record
+      },
       topic: {
         type: String,
         enum: [
@@ -954,24 +959,155 @@ sequenceDiagram
     M-->>A: Document mới với _id
     A-->>U: 201 Created + JWT token
 
-    Note over U,M: 🍳 Flow: Tìm công thức từ nguyên liệu
-    U->>A: POST /api/recipes/search-by-ingredients {ingredients: ["thịt bò", "tỏi"]}
-    A->>M: Recipe.find({"ingredients.name": {$in: [...]}})
+    Note over U,M: 🍳 Flow: Tìm công thức từ nguyên liệu (Bắt buộc dùng ID, tuyệt đối không dùng Tên)
+    U->>A: POST /api/recipes/search-by-ingredients {ingredient_ids: ["id_thit_bo", "id_toi"]}
+    A->>M: Recipe.find({"ingredient_ids": {$in: [...]}})
     M-->>A: Danh sách recipes khớp
     A-->>U: 200 OK + recipes[]
 
     Note over U,M: 🤖 Flow: Chat với AI
     U->>A: POST /api/chat/message {sessionId, content: "Tôi có thịt gà, nấu gì?"}
     A->>M: ChatSession.findById(sessionId)
-    M-->>A: Session + lịch sử chat
-    A->>A: Gửi context + message lên LLM (Gemini/OpenAI)
+    M-->>A: Session + context_snapshot + lịch sử chat
+    A->>A: Gửi THẲNG context_snapshot (sẵn diet, pantry) + message lên LLM
     A->>M: ChatSession.updateOne({$push: {messages: [...]}})
     A-->>U: 200 OK + AI response
 ```
 
 ---
 
-## 📝 Phần 6: Tóm Tắt & Bước Tiếp Theo
+## ⚡ Phần 6: Core Query Patterns (Nền tảng Truy xuất Production)
+
+Cách tổ chức data bên trên được thiết kế dành riêng cho các Query pattern sau đây:
+
+### 1. Match Nguyên Liệu (Ingredient Discovery)
+Truy vấn phổ biến nhất: *User chọn 3 nguyên liệu trong tủ, hệ thống gợi ý món.*
+
+> [!NOTE]
+> **🚀 `$in` (Partial Match) vs `$all` (Exact Match) — Đừng nhầm lẫn!**
+> - BẠN GHI: `{ ingredient_ids: { $in: [A, B] } }` ➡️ Nghĩa là: "Công thức có chứa món A **HOẶC** B". Dùng cực nhiều trên thực tế vì tủ lạnh User hiếm khi ĐỦ 100% nguyên liệu để nấu nguyên món.
+> - BẠN GHI: `{ ingredient_ids: { $all: [A, B] } }` ➡️ Nghĩa là: "Công thức BẮT BUỘC phải ĐỒNG THỜI chứa A **VÀ** B". Phù hợp lúc User nhất quyết bảo AI: "Gợi ý cho tôi món nào phải có cả Bò và Phở mới chịu".
+
+```javascript
+// Tính năng: "Tìm món nào chứa DÙ CHỈ MỘT TRONG CÁC nguyên liệu này" ($in)
+const userIngIds = ['id_thit_ga', 'id_toi'];
+
+// 🚀 Nhanh cực đỉnh nhờ Multikey Index đã setup phía trên Mongoose model
+const recipes = await Recipe.find({
+  ingredient_ids: { $in: userIngIds } 
+}).limit(20);
+```
+
+### 2. Partial Match Aggregation (Thiếu nguyên liệu vẫn nấu)
+User có Gà và Tỏi, nhưng món Gà Kho Tỏi cần Gà, Tỏi, và Tiêu. User thiếu Tiêu.
+```javascript
+// Sử dụng Aggregation Framework set intersection để tính điểm matching (%)
+const matchingRecipes = await Recipe.aggregate([
+  {
+    $addFields: {
+      matched_count: {
+        $size: { $setIntersection: ["$ingredient_ids", userIngIds] }
+      },
+      total_needed: { $size: "$ingredient_ids" }
+    }
+  },
+  {
+    $addFields: {
+      match_percent: { $divide: ["$matched_count", "$total_needed"] }
+    }
+  },
+  { $sort: { match_percent: -1 } } // Món nào giống 90% thì lên đầu!
+]);
+```
+
+### 3. Lọc theo Cá Nhân Hóa (Personalized Filters)
+Chỉ hiển thị món Keto nếu user ăn Keto.
+```javascript
+const recipes = await Recipe.find({
+  tags: user.dietaryPreferences.dietType, // "keto"
+  "nutrition.calories": { $lte: user.healthGoals.dailyCalorieTarget } // Ứng dụng luôn nutrition embed!
+});
+```
+
+### 4. Thuật Toán Xếp Hạng (Ranking Strategy)
+Khi hiển thị danh sách cho User, ta không chỉ sort theo ngày tháng, mà còn phải xếp hạng (Ranking):
+1.  **Match %:** Món nào giống với tủ lạnh nhất lên đầu (Dùng phép chia phần trăm ở `Aggregation` mục 2).
+2.  **Đánh giá & Phổ biến:** Cộng điểm cho món có `averageRating` cao.
+3.  **Nutrition / Diet Fit:** Trừ điểm nếu món đó không đúng diet của User.
+*Mẹo:* Bạn có thể giải quyết bài toán Ranking này ở cấp độ Database (dùng Weighted Aggregation) hoặc lấy danh sách thô về Node.js rồi viết hàm Sort trong backend.
+
+---
+
+---
+
+## ⚡ Phần 6.5: Pagination & Performance Patterns (Tối ưu Hiệu Năng API)
+
+Frontend không bao giờ (và không được phép) gọi 1 phát lấy về 1000 recipes. Bạn PHẢI áp dụng phân trang (Pagination) ở BE.
+
+### 1. Phân Trang Cơ Bản (Limit & Skip)
+Phù hợp cho trang web desktop có các nút vuông "Pages 1, 2, 3...".
+```javascript
+// GET /api/recipes?page=2&limit=20
+const page = parseInt(req.query.page) || 1;
+const limit = parseInt(req.query.limit) || 20;
+
+const recipes = await Recipe.find()
+  .sort({ createdAt: -1 })      // Sắp xếp giảm dần
+  .skip((page - 1) * limit)     // Bỏ qua các item trang trước
+  .limit(limit);                // Chỉ bốc đúng số lượng
+```
+*⚠️ Đánh đổi (Trade-off):* `skip()` rất chậm khi page lên tới con số hàng chục ngàn do DB phải quét cạn lướt qua list từ đầu đến đó.
+
+### 2. Cursor-based Pagination (Dành cho Mobile App - Vô Cực Cuộn)
+Phương pháp ưu việt cho UX kiểu Tiktok / Instagram. Dựa vào `_id` cuối cùng ở page trước làm điểm neo. Tránh hiện tượng mất data lúc load nếu có món mới chèn vào ngay lúc user vuốt.
+```javascript
+// GET /api/recipes?cursor=ID_CUOI_CUNG_CUA_PAGE_TRUOC&limit=20
+const recipes = await Recipe.find({ _id: { $lt: req.query.cursor } })
+  .sort({ _id: -1 })
+  .limit(20);
+```
+
+### 3. Caching với Redis (Bộ Nhớ Đệm Siêu Tốc)
+Với các truy vấn cực kỳ thường xuyên và ít biến động (ví dụ: Tìm kiếm công thức theo nguyên liệu phổ biến, Danh sách Category), việc bắt MongoDB Query liên tục là lãng phí tài nguyên.
+*   **Chiến lược:** Khi User search `ingredient_ids: [A, B]`, hãy check Redis xem có kết quả của khoá đó chưa. Nếu chưa có, query MongoDB rồi Hash lưu lại Redis khoảng 1 giờ (TTL = 3600s). Đọc từ Redis sẽ nhanh gấp hàng chục lần vì chạy trên RAM.
+
+---
+
+## 🚀 Phần 7: Production Considerations
+
+Trong môi trường Production thực tế (Startup level), khi Backend scale lên hàng trăm nghìn User và Recipe, bạn phải cực kỳ lưu ý các lỗi Anti-Pattern sau:
+
+1. **Explicit Indexing Strategy (Kiểm soát Chỉ Mục Khắt Khe):** 
+   * **Đừng "gặp gì cũng Index"**: Index cấu trúc theo B-Tree, giúp tăng tốc câu lệnh `find()`, nhưng làm CHẬM thao tác `insert/update`.
+   * **Multikey Index**: `recipeSchema.index({ ingredient_ids: 1 })`. Mảng ID khi bị index sẽ buộc Mongo tách từng phần tử nhỏ ra tạo dấu chỉ (rất tốn dung lượng RAM/Disk). Tuyệt đối *chỉ* query mảng ObjectID, cấm kị query mảng text JSON.
+   * **Compound Index**: `recipeSchema.index({ userId: 1, isActive: 1 })` trong MealPlan là cách để gộp 2 điều kiện tìm đồng thời. Order của tham số trong Compound Index rất khắt khe dựa theo rule ESR (Equality -> Sort -> Range). 
+
+2. **Unbounded Array Anti-pattern (Bùng Nổ Mảng Không Đáy):**
+   * *MongoDB giới hạn Size Document là 16MB.*
+   * Mảng `ChatSession.messages`, `User.savedRecipes`, hay `Recipe.reviews` sẽ phình nhanh đến rách Document nều không chặn giới hạn mảng.
+   * **🚀 Solution:** 
+     - **Quy luật 500:** Nếu mảng dự kiến vượt qua 500 items, BẮT BUỘC tách collection thành file vật lí độc lập và link Reference ngược sang.
+     - **Subset Pattern:** Giữ "10 reviews mới nhất" ngay nhúng sẵn trong `Recipe` để Load Front-End xẹt xẹt nhanh, 990 cái reviews còn dồn lưu sang 1 collection `Reviews` dùng lệnh Get Pagination từ từ.
+
+3. **String Search Deprecation (Quy Hoạch lại Ngôn Ngữ):**
+   * Không xây tính năng tìm rà trên text như "Tìm món chứa nguyên liệu 'thịt bò'". Rất sai sót (ví dụ gõ "thit bo", "thịt bò", "ThịT BÒ"). Phải chuẩn hóa tên ở Collection Ingredient rời rạc, cấp cho nó đúng 1 ObjectID, và thao túng data dựa trên 100% ID.
+
+4. **Optimized Reads vs Writes (Viết Chậm - Đọc Nhanh):**
+   * Hệ thống ẩm thực **Read-Heavy** (Một Recipe tạo ra 1 lần, được hàng triệu User search vạn lần). Do đó, nhét mảng object `ingredients[]` dán chết vào record `Recipe` (Denormalization).
+   * **Hiệu ứng phụ ảnh hưởng Write:** Các kĩ thuật Multikey Index và Embedding làm cho thao tác Write (`insert`/`update`) trở nên tốn Disk Storage và chậm đi.
+   * **Lý do Chấp Nhận Đoán Trọng Tâm:** Trong app thực tế quy mô lớn, tỷ lệ Đọc:Ghi là 100:1. Kiến trúc sư dự án chấp nhận hi sinh một chút tốc độ Ghi, lấy tốc độ tuyệt hảo O(1) lúc Đọc làm gốc, cứu nguy Application Server Node.js vào các múi giờ cao điểm.
+
+---
+
+## 🛡️ Phần 8: Security Considerations (Bảo Mật API Dữ Liệu)
+
+Khi Database đã tối ưu, hệ thống lớn vẫn dễ tổn thương nếu thiếu phòng thủ Layer 7.
+1. **Rate Limiting Search/Filter API:** Lệnh `$in` trên Multikey Array ngốn RAM của Cluster MongoDB. Bạn nhất định phải đóng gói các Endpoints search vào middleware *Rate Limiting* (VD: `express-rate-limit` hoặc dùng Redis Tokens). Khống chế User Search liên tiếp.
+2. **Rate Limiting Chat AI Server:** Thao tác tạo Hội thoại đi liền với việc tạo Job LLM đắt xắt ra miếng và Insert mảng bự. Cần chặn Request Spike trên API (Limit: 5 request/phút) để tránh nghẹt Server.
+
+---
+
+## 📝 Phần 9: Tóm Tắt & Bước Tiếp Theo
 
 ### Tổng kết các Collection
 
@@ -979,6 +1115,7 @@ sequenceDiagram
 |-----------|-------|----------|
 | `users` | User | Thông tin tài khoản & tùy chọn cá nhân |
 | `recipes` | Recipe | Công thức nấu ăn (nguyên liệu, bước, dinh dưỡng) |
+| `ingredients` | Ingredient | 🚀 Nguồn chân lý duy nhất (Single Source of Truth) định nghĩa chuẩn xác tên, calories, và phân loại rau củ/thịt cá của vật liệu. Tủ lạnh chỉ tham chiếu ID vào đây. |
 | `pantries` | Pantry | Tủ nguyên liệu của user |
 | `mealplans` | MealPlan | Kế hoạch bữa ăn theo ngày/tuần |
 | `chatsessions` | ChatSession | Lịch sử chat với AI |

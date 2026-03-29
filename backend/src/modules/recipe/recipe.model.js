@@ -82,6 +82,15 @@ const recipeSchema = new mongoose.Schema(
     },
 
     // --- Nội dung chính ---
+    // 🚀 THỰC TẾ PRODUCTION: Lưu danh sách ID để index và query tốc độ cao
+    ingredient_ids: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Ingredient", // Giả định có collection Ingredient chuẩn hóa trong tương lai
+      },
+    ],
+
+    // 🚀 THỰC TẾ PRODUCTION: Nhúng sẵn dữ liệu để render UI không cần JOIN ($lookup)
     ingredients: {
       type: [ingredientSchema],
       validate: {
