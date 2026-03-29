@@ -69,6 +69,38 @@ Eatsy tuân theo kiến trúc full-stack phân chia theo Module (Feature-based M
 
 ---
 
+## 🛠️ Hướng Dẫn Cài Đặt & Chạy Theo Nhóm (Setup Guide)
+
+> **Lưu ý:** Hiện tại dự án mới chỉ có phần Backend. Phần Frontend sẽ được cập nhật luồng chạy sau.
+
+Sau khi Pull code mới nhất từ nhánh `main` về máy, các thành viên trong nhóm làm đúng theo các bước sau để chạy Server:
+
+### Bước 1: Di chuyển vào thư mục Backend
+Mở Terminal của VSCode và gõ:
+```bash
+cd backend
+```
+
+### Bước 2: Cài đặt thư viện (Quy chuẩn Node.js)
+Trong Node.js, thẻ cài đặt thư viện được quản lý bởi file `package.json` (giống kiểu file `requirements.txt` bên Python). Bạn chỉ cần gõ 1 lệnh duy nhất để tải mọi thứ về:
+```bash
+npm install
+```
+
+### Bước 3: Cấu hình Môi trường (Biến tuyệt mật)
+Vì lý do bảo mật, file chứa mật khẩu Database thật (`.env`) đã bị ẩn khỏi Github.
+1. Bạn hãy tìm file có tên là `.env.example` nằm trong thư mục `backend`.
+2. **Copy** nội dung file .env do Bùi Ngọc cung cấp update thường xuyên và đổi tên thành `.env`
+
+### Bước 4: Khởi Động Server
+Sau khi làm xong 3 bước trên, bạn gõ lệnh chạy:
+```bash
+npm run dev
+```
+Nếu Terminal báo dòng chữ xanh lá hiển thị `🚀 Server is running on port 5000` và `✅ Đã kết nối MongoDB` thì chúc mừng, bạn đã sẵn sàng Code!
+
+---
+
 ## 📂 Trạng Thái Dự Án
 
 🚧 Đang phát triển (Dự án Học thuật)
