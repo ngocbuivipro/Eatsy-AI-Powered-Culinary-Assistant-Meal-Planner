@@ -26,7 +26,7 @@
 - **Priority:** 🔥 Cao nhất
 - **Deadline:** Tối Ngày 1
 - **Assignee:** Dev C
-- **Description:** Đăng ký Cluster miễn phí (Free Tier) trên MongoDB Atlas. Lấy chuỗi `MONGO_URI` thả vào file `.env`. Cài đặt mongoose (`npm i mongoose`) và viết file `src/config/db.js` để móc nối mạng.
+- **Description:** Đăng ký Cluster miễn phí (Free Tier) trên MongoDB Atlas. Lấy chuỗi `MONGO_URI` thả vào file `.env`. Cài đặt mongoose (`npm i mongoose`) và viết file `src/config/database.js` để móc nối mạng.
 - **Deliverable:** Console log ra dòng: "✅ Đã kết nối MongoDB Atlas thành công".
 
 ### Task 3: Kết nối đồng đội (Git Workflow Setup)
