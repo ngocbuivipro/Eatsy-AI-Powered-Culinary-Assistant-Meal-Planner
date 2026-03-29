@@ -6,7 +6,7 @@
 ---
 
 ## 👥 Ý tưởng Phân Công (Roles)
-Để 3 người không đạp code lên nhau bị Conflict trên Git, các bạn nên chia nhánh như sau:
+Để 3 người không đạp code lên nhau bị Conflict trên Git, chia nhánh như sau:
 * **👨‍💻 Dev A (Cơ sở hạ tầng):** Chuyên lo setup thư viện, chạy server, quản lý Git, và Cấu hình xử lý Lỗi (Error Handling).
 * **🕵️‍♂️ Dev B (Bảo mật/User):** Chuyên làm hệ thống Account, rào API, băm mật khẩu, thư viện Authorization (JWT).
 * **🍳 Dev C (Nghiệp vụ Món ăn):** Chuyên môn tạo dữ liệu Fake (Seeding), CRUD món ăn và thực hiện lệnh Query móc DB tìm nguyên liệu.
@@ -14,7 +14,6 @@
 ---
 
 ## 🗓️ 1. Ngày 1: Nền Móng Vững Chắc
-*(Ngày hôm nay)*
 
 ### Task 1: Khởi tạo Server & Routing Cơ Bản
 - **Priority:** 🔥 Cao nhất
