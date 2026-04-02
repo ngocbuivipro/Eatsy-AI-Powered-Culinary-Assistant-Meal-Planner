@@ -9,40 +9,10 @@
 - **Hạ tầng**: Khởi tạo Server, kết nối MongoDB Atlas, phân rã Model hoàn chỉnh.
 - **Common Utilities**: Hoàn thiện các common service dùng chung cơ bản (`jwt.util`, `password.util`, `asyncHandler`, `response.util`, `ApiError`).
 - **Core Security (Task 4)**: Xây dựng xong Global Error Handler và Tường lửa xác thực người dùng (`auth.middleware.js`).
+- **Authentication (Ngày 1)**: Đã hoàn tất 100% **Task 1 (Register), Task 2 (Login)** và **Task 3 (OAuth Google/Apple)**. Luồng Auth đa tầng đã khóa chặt thành công!
 
 > ⚠️ **Lưu ý quan trọng cho Team:** 
-> - Ai làm tính năng Đăng ký/Đăng nhập bắt buộc gọi hàm từ `src/utils`. Không nhúng code thư viện trực tiếp vào Controller.
 > - Các API yêu cầu người dùng phải đăng nhập mới được thao tác (như Xem/Sửa Profile, Quản lý Tủ Lạnh Pantry) bắt buộc phải gắn middleware `protect` vào trước Controller.
-
----
-
-## 🗓️ 1. Ngày 1: Bảo Mật & Xác Thực Đa Tầng (Auth)
-
-### Task 1: API Đăng ký tài khoản truyền thống (Register)
-📍 **Vị trí thao tác:** `src/modules/user/user.controller.js` và `user.routes.js`
-- **Description:** 
-  1. Viết hàm `registerUser` **bọc trong `catchAsync`**. Lấy `name, email, password` từ `req.body`.
-  2. Bắt buộc thêm kiểm tra: `if(!password) throw new ApiError(400, "Vui lòng nhập mật khẩu")`.
-  3. Dùng `User.findOne({ email })`. Nếu bị trùng, ném lỗi: `throw new ApiError(400, "Email đã tồn tại")`.
-  4. Mã hóa mật khẩu: Dùng hàm `hashPassword(password)` (import từ `password.util.js`).
-  5. Gọi `User.create(...)` tạo User. Cuối cùng trả về json bằng hàm đặc quyền `sendResponse(res, 201, "Đăng ký thành công", user)`.
-
-### Task 2: API Đăng nhập truyền thống (Login)
-📍 **Vị trí thao tác:** `src/modules/user/user.controller.js` và `user.routes.js`
-- **Description:** 
-  1. Viết hàm `loginUser` bọc bằng `catchAsync`. Lấy `email` và `password`.
-  2. Truy vấn Database bắt buộc đính đuôi: `User.findOne({ email }).select('+password')`.
-  3. Dùng `comparePassword` (từ `password.util.js`) rà soát. Nếu sai -> `throw new ApiError(401, "Sai tài khoản hoặc mật khẩu")`.
-  4. Cấp thẻ vào cửa: Gọi hàm `generateToken({ id: user._id })` từ `jwt.util.js`.
-  5. Trả kết quả xịn: `sendResponse(res, 200, "Đăng nhập thành công", { user, token })`.
-
-### Task 3: API Đăng nhập bên thứ 3 (Google/Apple) - Tiền trạm
-📍 **Vị trí thao tác:** `src/modules/user/user.controller.js` và `user.routes.js`
-- **Description:** 
-  1. Viết hàm `oauthLogin` bọc bằng `catchAsync`. Frontend nạp xuống API body: `email, name, authProvider, providerId, avatarUrl`.
-  2. Tìm tìm khách cũ `User.findOne({ email })`. Nếu khách có sẵn, cập nhật `googleId/appleId = providerId`.
-  3. Nếu trống rỗng (kết quả null): `User.create({ email, name, authProvider, googleId: providerId })` (**Tuyệt đối không mã hoá pass**).
-  4. Chốt sổ: Gọi chung 1 lệnh `generateToken()` và bắn trả JSON qua `sendResponse()`.
 
 ---
 
