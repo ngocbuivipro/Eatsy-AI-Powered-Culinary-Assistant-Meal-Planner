@@ -1,119 +1,111 @@
 # Kế Hoạch 5 Ngày
 
-**Trạng thái:** Các công việc khởi tạo ban đầu & thiết kế hạ tầng đã hoàn tất (Server, MongoDB Atlas, Git Workflow, Global Error Handler, cập nhật DB hỗ trợ OAuth 2.0).
+**Trạng thái:** Các công việc khởi tạo ban đầu & thiết kế hạ tầng đã hoàn tất. Đã xây dựng bộ Base vững chãi để chiến đấu.
 **Mục tiêu 5 ngày tới:** Hoàn thiện Hệ thống Đăng nhập Đa luồng (Local + Google/Apple), Xây dựng các nghiệp vụ Lõi (Pantry, Recipes) và hoàn thành Thuật toán Gợi ý Món ăn.
 
 ---
 
 ## ✅ ĐÃ HOÀN THÀNH
-- Khởi tạo Server (`app.js`, `server.js`).
-- Kết nối MongoDB Atlas.
-- Xây dựng Global Error Handler (`error.middleware.js`).
-- Phân rã Model hoàn chỉnh, sẵn sàng đón API.
+- **Hạ tầng**: Khởi tạo Server, kết nối MongoDB Atlas, phân rã Model hoàn chỉnh.
+- **Common Utilities**: Hoàn thiện các common service dùng chung cơ bản (`jwt.util`, `password.util`, `asyncHandler`, `response.util`, `ApiError`).
+- **Core Security (Task 4)**: Xây dựng xong Global Error Handler và Tường lửa xác thực người dùng (`auth.middleware.js`).
+
+> ⚠️ **Lưu ý quan trọng cho Team:** 
+> - Ai làm tính năng Đăng ký/Đăng nhập bắt buộc gọi hàm từ `src/utils`. Không nhúng code thư viện trực tiếp vào Controller.
+> - Các API yêu cầu người dùng phải đăng nhập mới được thao tác (như Xem/Sửa Profile, Quản lý Tủ Lạnh Pantry) bắt buộc phải gắn middleware `protect` vào trước Controller.
 
 ---
 
 ## 🗓️ 1. Ngày 1: Bảo Mật & Xác Thực Đa Tầng (Auth)
 
 ### Task 1: API Đăng ký tài khoản truyền thống (Register)
+📍 **Vị trí thao tác:** `src/modules/user/user.controller.js` và `user.routes.js`
 - **Description:** 
-  1. Tạo file `src/modules/user/user.controller.js` và `src/modules/user/user.routes.js`.
-  2. Viết hàm `registerUser`. Lấy `name, email, password` từ `req.body`.
-  3. **Rất quan trọng:** Vì Schema đã thả cửa Password, bắt buộc thêm dòng `if(!password) throw new Error("Vui lòng nhập mật khẩu")` để chặn đầu.
-  4. Dùng lệnh `User.findOne({ email })` kiểm tra trùng. Nếu bị trùng, văng lỗi 400.
-  5. Cài gói `bcryptjs`. Dùng `bcrypt.hashSync(password, 10)` để mã hóa mật khẩu.
-  6. Dùng `User.create(...)` tạo User (lưu pass mã hóa, KHÔNG lưu pass gốc).
-- **Deliverable:** Mở Postman, gọi `POST /api/users/register` với body chuẩn. Kết quả sẽ hiện HTTP Code `201 Created` và trả về thông tin User (tuyệt đối không lộ mật khẩu ra JSON). Lên bản web MongoDB Atlas check sẽ thấy pass bị quậy nát (mã hoá).
+  1. Viết hàm `registerUser` **bọc trong `catchAsync`**. Lấy `name, email, password` từ `req.body`.
+  2. Bắt buộc thêm kiểm tra: `if(!password) throw new ApiError(400, "Vui lòng nhập mật khẩu")`.
+  3. Dùng `User.findOne({ email })`. Nếu bị trùng, ném lỗi: `throw new ApiError(400, "Email đã tồn tại")`.
+  4. Mã hóa mật khẩu: Dùng hàm `hashPassword(password)` (import từ `password.util.js`).
+  5. Gọi `User.create(...)` tạo User. Cuối cùng trả về json bằng hàm đặc quyền `sendResponse(res, 201, "Đăng ký thành công", user)`.
 
 ### Task 2: API Đăng nhập truyền thống (Login)
+📍 **Vị trí thao tác:** `src/modules/user/user.controller.js` và `user.routes.js`
 - **Description:** 
-  1. Viết hàm `loginUser` ở file controller lấy `email` và `password`.
-  2. Dùng lệnh `User.findOne({ email }).select('+password')`. (Phải thêm `.select('+password')` vì Model đã thiết lập ẩn thuộc tính này).
-  3. Nếu tìm không ra email hoặc `bcrypt.compareSync(password, user.password)` trả về `false` -> quăng lỗi `401 Unauthorized` ("Sai tài khoản hoặc mật khẩu").
-  4. Cài gói `jsonwebtoken`. Gọi `jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' })` để lấy chuỗi Token.
-- **Deliverable:** Dùng Postman test `POST /api/users/login`. Nếu đúng pass -> Server phải trả về HTTP Code `200` kèm JSON rực rỡ gồm `user` info và MỘT CHUỖI `token: "eyJhbG.."` dài ngoằng.
+  1. Viết hàm `loginUser` bọc bằng `catchAsync`. Lấy `email` và `password`.
+  2. Truy vấn Database bắt buộc đính đuôi: `User.findOne({ email }).select('+password')`.
+  3. Dùng `comparePassword` (từ `password.util.js`) rà soát. Nếu sai -> `throw new ApiError(401, "Sai tài khoản hoặc mật khẩu")`.
+  4. Cấp thẻ vào cửa: Gọi hàm `generateToken({ id: user._id })` từ `jwt.util.js`.
+  5. Trả kết quả xịn: `sendResponse(res, 200, "Đăng nhập thành công", { user, token })`.
 
 ### Task 3: API Đăng nhập bên thứ 3 (Google/Apple) - Tiền trạm
+📍 **Vị trí thao tác:** `src/modules/user/user.controller.js` và `user.routes.js`
 - **Description:** 
-  1. Frontend sau khi User bấm login Google sẽ nạp xuống Backend các thứ: `email, name, authProvider, providerId` (providerId là googleId/appleId tuỳ loại).
-  2. Tại hàm `oauthLogin`, tìm `User.findOne({ email })`.
-  3. NẾU USER CÓ SẴN (Đã log in lúc trước bằng Email/Pass): Cập nhật thẳng `googleId = providerId` vào Document cũ. Sinh JWT Token như Task 2.
-  4. NẾU BỘ NHỚ TRỐNG (Lần đầu xuất hiện): Dùng `User.create({ name, email, authProvider, googleId: providerId })`. **Bỏ qua password. Không hash pass!**. Sau đó sinh JWT Token.
-- **Deliverable:** Postman test bắn giả một JSON chứa thông tin vào `POST /api/users/oauth`. DB tự động sinh ra User mà không cần Password, Token lấy về bẻ khoá ra vẫn khớp ID User.
+  1. Viết hàm `oauthLogin` bọc bằng `catchAsync`. Frontend nạp xuống API body: `email, name, authProvider, providerId, avatarUrl`.
+  2. Tìm tìm khách cũ `User.findOne({ email })`. Nếu khách có sẵn, cập nhật `googleId/appleId = providerId`.
+  3. Nếu trống rỗng (kết quả null): `User.create({ email, name, authProvider, googleId: providerId })` (**Tuyệt đối không mã hoá pass**).
+  4. Chốt sổ: Gọi chung 1 lệnh `generateToken()` và bắn trả JSON qua `sendResponse()`.
 
 ---
 
-## 🗓️ 2. Ngày 2: Tường Lửa & Hồ Sơ User (Profile & Middleware)
+## 🗓️ 2. Ngày 2: Hồ Sơ Người Dùng (User Profile)
 
-### Task 4: Tường Lửa API Bằng Token (Auth Middleware)
-- **Description:** 
-  1. Tạo file `src/middleware/auth.middleware.js` chứa hàm `protect(req, res, next)`.
-  2. Quét biến `req.headers.authorization`. Nếu có nó, và nó bắt đầu bằng chữ `"Bearer "`, ta sẽ cắt lấy Token ở phía sau bằng `split(' ')[1]`. Nếu không có ➡️ Văng lỗi 401.
-  3. Trích xuất ID bên trong Token mã hoá: Dùng `jwt.verify(token, process.env.JWT_SECRET)`.
-  4. Tra cứu User bằng `User.findById(decoded.id).select('-password')`. Nếu tìm thấy, gán mẹo vào Request: `req.user = user`, cuối cùng gọi `next()` để đi tiếp.
-- **Deliverable:** Viết route GET bất kỳ có nhét đệm hàm `protect` vào giữa. Dùng Postman test KHÔNG truyền Authorization Header -> Bị chặn gắt. NẾU tryền Header Bearer <Token Task 2> -> Vượt qua thành công.
+*(Ghi chú: Task 4 - Auth Middleware đã được hoàn thành. Vui lòng sử dụng hàm `protect` cho các Task tiếp theo)*
 
 ### Task 5: API Get & Update Profile (Cá nhân hoá)
+📍 **Vị trí thao tác:** `src/modules/user/user.controller.js` và `user.routes.js`
 - **Description:** 
-  1. Viết API `GET /api/users/profile`. Cái này siêu dễ, tại vì Task 4 có hàm `protect` nằm trên rồi đã gài sẵn biến `req.user` vào. Chỉ việc `res.json(req.user)` là xong.
-  2. Viết API cập nhật `PUT /api/users/profile`. Nhận body: `dietaryPreferences`, `healthGoals`, `avatarUrl`.
-  3. Dùng `User.findByIdAndUpdate(req.user._id, req.body, { new: true })` để lưu lại DB. Văng lỗi 400 nếu truyền Type sai trong Object rễ.
-- **Deliverable:** Mở Postman, Header đính Token. Bắn body JSON tuỳ biến sửa "Chế độ ăn kiêng (Vegan)" và "Muốn Giảm Cân". DB Atlas đổi đúng chuẩn Schema mà không bị mất các trường còn lại (Như email, pass).
+  1. Viết `GET /api/users/profile`. Trong Routes phải nhét thủ tục `protect`. Controller chỉ việc xả lời chào `sendResponse(res, 200, "OK", req.user)`.
+  2. Viết `PUT /api/users/profile` kẹp `protect`. Nhận body mớ thông tin.
+  3. Lưu lại bằng `User.findByIdAndUpdate`. Mọi lỗi vặt sẽ bị file `catchAsync` ném văng vào nhà kho Global Error, không cần `try/catch`.
 
 ---
 
-## 🗓️ 3. Ngày 3: Bồi Đắp Dữ Liệu & Danh Mục (Seeding & Categories)
+## 🗓️ 3. Ngày 3: Bồi Đắp Dữ Liệu & Danh Mục (Seeding)
 
 ### Task 6: API Danh Mục Thực Phẩm / Tiêu Chuẩn (Categories)
+📍 **Vị trí thao tác:** Mở riêng nhánh code vào `src/modules/category/`
 - **Description:** 
-  1. Code folder `category` y hệt MVC của User.
-  2. Viết hàm `GET /api/categories`.
-  3. Dùng lệnh Query kéo rèm: `Category.find({ isActive: true }).sort({ sortOrder: 1 })`. Lệnh này lấy ra toàn bộ loại món ăn đã xếp sẵn thứ tự ưu tiên.
-- **Deliverable:** Gọi `GET /api/categories` bằng Postman. Kết quả được cái mảng mượt mà chứa ID, Name, ImageUrl. (Tạo 1 api POST thủ công chạy trên Postman để Dev C tự thêm 3 category đầu tiên: Món Việt, Ăn chay, Phở).
+  1. Viết hàm `getCategories` bọc bằng `catchAsync`.
+  2. Kéo rèm Data: `Category.find({ isActive: true }).sort({ sortOrder: 1 })`.
+  3. Điểm cuối: `sendResponse(res, 200, "Thành công", categories)`.
 
 ### Task 7: Seeding DB
+📍 **Vị trí thao tác:** Thẳng ở đường ngõ `backend/seeder.js` (Chạy bằng lệnh `node seeder`)
 - **Description:** 
-  1. App không thể test khi DB rỗng. Viết Script `backend/seeder.js` găm ở ngoài.
-  2. Xóa sạch DB cũ `await Ingredient.deleteMany(); await Recipe.deleteMany()`.
-  3. Bơm vào mảng 20 nguyên liệu thông dụng nhất thị trường (muối, đường, trứng, cà chua, thịt bò).
-  4. Lấy cái `_id` nguyên liệu trứng với thịt ném vào 3-4 bài Công thức chuẩn rồi `Recipe.insertMany()`.
-- **Deliverable:** Gõ `node seeder.js` vào terminal, log nháy chữ màu mè báo "Data Imported Successfully!". Lên trang Atlas load phát thấy DB ngập tràn data cơm thịt chuẩn chỉnh để làm mồi nấu thuật toán.
+  1. Setup Script kết nối qua Mongo Atlas .
+  2. Phá băng xóa hết db cũ `await Ingredient.deleteMany(); await Recipe.deleteMany()`.
+  3. Gắn Data tĩnh vào Mảng (Trứng, Hành, Mắm) và ấn lệnh `insertMany()` để dội thẳng Mongoose Cloud lấp đầy dữ liệu.
 
 ---
 
-## 🗓️ 4. Ngày 4: Công Thức & Pantry
+## 🗓️ 4. Ngày 4: Công Thức & Tủ Lạnh Nhỏ (Pantry)
 
 ### Task 8: API Tủ Lạnh "Pantry"
+📍 **Vị trí thao tác:** Code tại `src/modules/pantry/`
 - **Description:** 
-  1. Cái tủ lạnh Pantry chỉ có 1 với một user (`unique` userId).
-  2. `GET /api/pantry`: Phải lùi qua rào cản middleware `protect`. Sau đó `Pantry.findOne({ userId: req.user._id })`. Nếu lấy null (User mới đăng ký chưa có Tủ) -> Tự tạo tủ mới rỗng cho họ.
-  3. `POST /api/pantry`: Đẩy dữ liệu Body (id_nguyen_lieu, so_luong). Dùng cách PUSH phần tử mảng vào Array `items` của Pantry.
-  4. `DELETE /api/pantry/:itemId`: Dùng `$pull` trong Mongoose gắp cục đồ ra khỏi mảng khi user nấu ❌ xong xoá tủ.
-- **Deliverable:** Dùng postman cất thử cục "Thịt Lợn 500g" lấy từ Task 7 vào Tủ Lạnh 10B. Sau khi check API GET thì thấy mảng items dài lên với đúng con số 500g.
+  1. `GET /api/pantry`: Đặt mìn xác thực `protect`. Bơm vào lệnh query kiếm tủ. Lấy về `null` -> Tự đẻ 1 tủ mới rỗng tuếch.
+  2. `POST /api/pantry`: Nạp Body bằng thuật toán `$push` của Mongoose để đẩy mảng. Kết quả lụm được đem về bọc `sendResponse`.
+  3. `DELETE /api/pantry/:itemId`: Đập nguyên liệu rơi ra ngoài tủ rỗng qua `$pull`. 
 
 ### Task 9: API Tạo Công Thức Mới Của User (Create Recipe)
+📍 **Vị trí thao tác:** Làm sạch gọn mảng `src/modules/recipe/`
 - **Description:** 
-  1. Viết `POST /api/recipes/` có kẹp `protect()`.
-  2. Yêu cầu truyền nguyên Body rất bự chuẩn Schema Recipe (`title`, `description`, mảng `steps`, mảng `ingredients`).
-  3. Ép kiểu `author: req.user._id` (Gián điệp lấy từ Middleware, user không thể giả mạo thằng khác post nhờ).
-  4. `Recipe.create(req.body)`.
-- **Deliverable:** Dùng Postman đẩy thẳng 1 recipe fake. LÊN ATLAS CLICK VÀO LỖI NẾU BÁO LỖI (Vd: Validate Mongoose "Thiếu Title"). Thành công ghi được record vào DB Atlas.
+  1. Khai sinh Route `POST /api/recipes/` có kẹp vòng cung `protect()`.
+  2. Ép chèn `req.body.author = req.user._id` (Data thám xuất từ Auth, không cho User sài ID fake).
+  3. Mượt mà đẩy `Recipe.create(req.body)` vọt về frontend qua `sendResponse`.
 
 ---
 
 ## 🗓️ 5. Ngày 5: Trí Khôn Của App & Gom Báo Cáo Thành Tích
 
 ### Task 10: Thuật Toán AI Phổ Thông Tìm Món (Recipe Matching Engine)
+📍 **Vị trí thao tác:** Xoáy sâu vào `src/modules/recipe/recipe.controller.js`
 - **Description:** 
-  1. Viết route`GET /api/recipes/matcher`.
-  2. Gọi DB tủ lạnh: `pantry = Pantry.findOne({ userId: req.user._id })`. Móc mảng `pantry.items` thành một Array chứa rặt `ID_Nguyên_Liệu`.
-  3. Bơm vào hàm Query tìm kiếm bá vương: `Recipe.find({ ingredient_ids: { $in: mang_id_nguyen_lieu_cua_tu_lanh } })` ➡️ Cú pháp này Mongoose tự đi cào ra thằng Gà nào có chung id nguyên liệu.
-  4. CAO CẤP HƠN: Chạy vòng lặp Array Javascript đếm số điểm khớp. Nếu Recipe có 5 đồ mà Tủ ăn có 2 đồ -> Tính tỷ lệ được `40% Match`. Xếp món dễ làm nhất `order By Match DESC` ném lên Top 1 cho User thấy!
-- **Deliverable:** Tủ lạnh đang có 3 món là Cơm, Trứng, Hành. Đẩy API Postman chạy vùn vụt trả về Top 1 "Cơm chiên Trứng" với thuộc tính Match = 100%, Top 2 Món "Cơm Thịt Trứng" Match = 66%. Đạt Trình Gà Coding Master.
+  1. Gắp toàn tuyến mảng Đồ ăn: Bóc `items` của Pantry tuồn thành 1 Array đút ruột ID Nguyên liệu.
+  2. Tích hợp lệnh `Recipe.find({ ingredient_ids: { $in: mang_id_cua_tu_lanh } })`.
+  3. Quét vòng lặp Array JS để đong đếm mức độ Giao Nhau (Intersection). Tính toán % Match xếp hạng (Sort DESC) ra mâm và bê ra qua `sendResponse()`.
 
 ### Task 11: Lưu trữ Postman Collection & Clean Code
+📍 **Vị trí thao tác:** Không gian chung toàn project
 - **Description:** 
-  1. Sửa hết các console.log rác rưởi.
-  2. Chuột phải vào Folder làm việc trên Postman Export ra file `Eatsy_Backend.json`. Quăng thẳng vào Github gốc.
-  3. Mở file `README.md` lên cập nhật hướng dẫn cách chạy lệnh `npm install`, thay `MONGO_URI`.
-- **Deliverable:** Bạn cùng nhóm tải Code từ GitHub về nhắm mắt cũng khởi chạy và trỏ API được êm đềm không quăng Error lạ, sẵn sàng nối Frontend vô và đi Liên Hoan! 🍻
+  1. Càn quét Search tính năng IDE để diệt mọi mớ rác mang tên `console.log()` mà quên xoá.
+  2. Dump bản đồ giao tiếp Postman File JSON ném chung cất làm của hồi môn Frontend.
