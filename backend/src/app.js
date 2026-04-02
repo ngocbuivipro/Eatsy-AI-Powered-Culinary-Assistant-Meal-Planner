@@ -15,12 +15,15 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
 
+import userRoutes from "./modules/user/user.route.js";
+
 // Test route
 app.get("/", (req, res) => {
   res.send("Eatsy Backend is running 🚀");
 });
 
-
+// Các API nghiệp vụ
+app.use("/api/users", userRoutes);
 // BẮT BUỘC ĐỂ Ở CUỐI CÙNG LÀ BỘ ĐÔI NÀY!
 app.use(notFound); // Chặn các route không tồn tại (404)
 app.use(errorHandler); // Nếu các file khác văng error (ví dụ code thiếu var), hứng vào đây hết

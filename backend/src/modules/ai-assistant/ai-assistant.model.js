@@ -55,10 +55,9 @@ const chatSessionSchema = new mongoose.Schema(
     // như nguyên liệu đang có, mục tiêu và chế độ ăn của user sẽ giúp query nhanh,
     // không phải chắp vá ($lookup) từ nhiều collections khi generate prompt.
     context_snapshot: {
-      ingredient_ids: {
-        type: [mongoose.Schema.Types.ObjectId],
-        ref: "Ingredient",
-        default: [], // Ví dụ: [ObjectId("...")] chuẩn hóa trực tiếp từ Pantry
+      spoonacularIngredientIds: {
+        type: [Number],
+        default: [], // Ví dụ: [1123, 9003] lưu trực tiếp snapshot từ Pantry
       },
       userDiet: {
         type: String,
