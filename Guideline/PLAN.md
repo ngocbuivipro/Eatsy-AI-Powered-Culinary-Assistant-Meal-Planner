@@ -1,21 +1,11 @@
-# Kế Hoạch 5 Ngày (Sprint 1) - Phát Triển Tuyến Tính Backend Eatsy
-*(Bản cập nhật v2.0 - Phục vụ Coder Beginner / Sinh viên "vibecode")*
+# Kế Hoạch 5 Ngày
 
-**Tình hình hiện tại:** Nhóm 3 người. Database Model đã được thiết kế chuẩn chỉ.
 **Trạng thái:** Các công việc khởi tạo ban đầu & thiết kế hạ tầng đã hoàn tất (Server, MongoDB Atlas, Git Workflow, Global Error Handler, cập nhật DB hỗ trợ OAuth 2.0).
 **Mục tiêu 5 ngày tới:** Hoàn thiện Hệ thống Đăng nhập Đa luồng (Local + Google/Apple), Xây dựng các nghiệp vụ Lõi (Pantry, Recipes) và hoàn thành Thuật toán Gợi ý Món ăn.
 
 ---
 
-## 👥 Ý tưởng Phân Công (Roles)
-Để 3 người không đạp code lên nhau bị Conflict trên Git, chia nhánh như sau:
-* **👨‍💻 Dev A (Cơ sở hạ tầng & Hệ thống):** Chuyên làm các luồng OAuth, Middleware (gác cổng phân quyền API).
-* **🕵️‍♂️ Dev B (Bảo mật/User):** Chuyên thiết kế luồng Đăng ký/Đăng nhập Email, băm mật khẩu, JWT Token và Cập nhật hồ sơ User.
-* **🍳 Dev C (Nghiệp vụ Món ăn):** Chuyên môn tạo dữ liệu Fake (Seeding), Tủ lạnh (Pantry), CRUD công thức và xây thuật toán truy vấn.
-
----
-
-## ✅ TRƯỚC SPRINT: ĐÃ HOÀN THÀNH TỐT
+## ✅ ĐÃ HOÀN THÀNH
 - Khởi tạo Server (`app.js`, `server.js`).
 - Kết nối MongoDB Atlas.
 - Xây dựng Global Error Handler (`error.middleware.js`).
@@ -23,7 +13,7 @@
 
 ---
 
-## 🗓️ 1. Ngày 1: Bảo Mật Cửa Ngõ & Xác Thực Đa Tầng (Auth)
+## 🗓️ 1. Ngày 1: Bảo Mật & Xác Thực Đa Tầng (Auth)
 
 ### Task 1: API Đăng ký tài khoản truyền thống (Register)
 - **Description:** 
@@ -53,11 +43,11 @@
 
 ---
 
-## 🗓️ 2. Ngày 2: Tường Lửa & Hồ Sơ Cá Nhân (Profile & Middleware)
+## 🗓️ 2. Ngày 2: Tường Lửa & Hồ Sơ User (Profile & Middleware)
 
 ### Task 4: Tường Lửa API Bằng Token (Auth Middleware)
 - **Description:** 
-  1. Điểm sinh tử đây! Tạo file `src/middleware/auth.middleware.js` chứa hàm `protect(req, res, next)`.
+  1. Tạo file `src/middleware/auth.middleware.js` chứa hàm `protect(req, res, next)`.
   2. Quét biến `req.headers.authorization`. Nếu có nó, và nó bắt đầu bằng chữ `"Bearer "`, ta sẽ cắt lấy Token ở phía sau bằng `split(' ')[1]`. Nếu không có ➡️ Văng lỗi 401.
   3. Trích xuất ID bên trong Token mã hoá: Dùng `jwt.verify(token, process.env.JWT_SECRET)`.
   4. Tra cứu User bằng `User.findById(decoded.id).select('-password')`. Nếu tìm thấy, gán mẹo vào Request: `req.user = user`, cuối cùng gọi `next()` để đi tiếp.
@@ -65,7 +55,7 @@
 
 ### Task 5: API Get & Update Profile (Cá nhân hoá)
 - **Description:** 
-  1. Viết API `GET /api/users/profile`. Cái này siêu dễ, tại vì Task 4 có hàm `protect` nằm trên rồi đã gài sẵn biến `req.user` vào. Bạn chỉ việc `res.json(req.user)` là xong.
+  1. Viết API `GET /api/users/profile`. Cái này siêu dễ, tại vì Task 4 có hàm `protect` nằm trên rồi đã gài sẵn biến `req.user` vào. Chỉ việc `res.json(req.user)` là xong.
   2. Viết API cập nhật `PUT /api/users/profile`. Nhận body: `dietaryPreferences`, `healthGoals`, `avatarUrl`.
   3. Dùng `User.findByIdAndUpdate(req.user._id, req.body, { new: true })` để lưu lại DB. Văng lỗi 400 nếu truyền Type sai trong Object rễ.
 - **Deliverable:** Mở Postman, Header đính Token. Bắn body JSON tuỳ biến sửa "Chế độ ăn kiêng (Vegan)" và "Muốn Giảm Cân". DB Atlas đổi đúng chuẩn Schema mà không bị mất các trường còn lại (Như email, pass).
@@ -81,7 +71,7 @@
   3. Dùng lệnh Query kéo rèm: `Category.find({ isActive: true }).sort({ sortOrder: 1 })`. Lệnh này lấy ra toàn bộ loại món ăn đã xếp sẵn thứ tự ưu tiên.
 - **Deliverable:** Gọi `GET /api/categories` bằng Postman. Kết quả được cái mảng mượt mà chứa ID, Name, ImageUrl. (Tạo 1 api POST thủ công chạy trên Postman để Dev C tự thêm 3 category đầu tiên: Món Việt, Ăn chay, Phở).
 
-### Task 7: "Ngòi Nổ" Dữ Liệu Fake (Seeding DB)
+### Task 7: Seeding DB
 - **Description:** 
   1. App không thể test khi DB rỗng. Viết Script `backend/seeder.js` găm ở ngoài.
   2. Xóa sạch DB cũ `await Ingredient.deleteMany(); await Recipe.deleteMany()`.
@@ -91,7 +81,7 @@
 
 ---
 
-## 🗓️ 4. Ngày 4: Trái Tim Vận Hành (Công Thức & Tủ Lạnh)
+## 🗓️ 4. Ngày 4: Công Thức & Pantry
 
 ### Task 8: API Tủ Lạnh "Pantry"
 - **Description:** 
@@ -115,7 +105,7 @@
 
 ### Task 10: Thuật Toán AI Phổ Thông Tìm Món (Recipe Matching Engine)
 - **Description:** 
-  1. Viết route khủng nhất `GET /api/recipes/matcher`.
+  1. Viết route`GET /api/recipes/matcher`.
   2. Gọi DB tủ lạnh: `pantry = Pantry.findOne({ userId: req.user._id })`. Móc mảng `pantry.items` thành một Array chứa rặt `ID_Nguyên_Liệu`.
   3. Bơm vào hàm Query tìm kiếm bá vương: `Recipe.find({ ingredient_ids: { $in: mang_id_nguyen_lieu_cua_tu_lanh } })` ➡️ Cú pháp này Mongoose tự đi cào ra thằng Gà nào có chung id nguyên liệu.
   4. CAO CẤP HƠN: Chạy vòng lặp Array Javascript đếm số điểm khớp. Nếu Recipe có 5 đồ mà Tủ ăn có 2 đồ -> Tính tỷ lệ được `40% Match`. Xếp món dễ làm nhất `order By Match DESC` ném lên Top 1 cho User thấy!
