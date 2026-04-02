@@ -82,11 +82,10 @@ const recipeSchema = new mongoose.Schema(
     },
 
     // --- Nội dung chính ---
-    // 🚀 THỰC TẾ PRODUCTION: Lưu danh sách ID để index và query tốc độ cao
-    ingredient_ids: [
+    // 🚀 THỰC TẾ PRODUCTION: Lưu trực tiếp ID của Spoonacular để query thần tốc
+    spoonacularIngredientIds: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Ingredient", // Giả định có collection Ingredient chuẩn hóa trong tương lai
+        type: Number, // Lấy trực tiếp từ ID của Spoonacular
       },
     ],
 
