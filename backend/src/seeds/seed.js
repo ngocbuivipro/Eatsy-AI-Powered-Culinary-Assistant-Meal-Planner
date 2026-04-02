@@ -1,0 +1,184 @@
+import dotenv from "dotenv";
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+import connectDB from "../config/database.js";
+import Recipe from "../modules/recipe/recipe.model.js";
+import User from "../modules/user/user.model.js";
+import Pantry from "../modules/pantry/pantry.model.js";
+
+dotenv.config();
+
+const sampleRecipes = [
+  {
+    title: "Classic Spaghetti Carbonara",
+    description:
+      "Creamy Italian pasta with eggs, cheese, pancetta, and pepper. Perfect for quick weeknight comfort food.",
+    author: null,
+    source: "spoonacular",
+    spoonacularId: 314159,
+    spoonacularIngredientIds: [1001, 1123, 1082047, 9156],
+    ingredients: [
+      { name: "spaghetti", quantity: 400, unit: "g" },
+      { name: "pancetta", quantity: 150, unit: "g" },
+      { name: "egg yolk", quantity: 4, unit: "piece" },
+      { name: "parmesan cheese", quantity: 80, unit: "g" },
+      { name: "black pepper", quantity: 1.5, unit: "tsp" },
+      { name: "sea salt", quantity: 1, unit: "tsp", isOptional: true },
+    ],
+    steps: [
+      {
+        order: 1,
+        instruction:
+          "Cook spaghetti in salted boiling water until al dente according to package instructions.",
+        duration: 10,
+      },
+      {
+        order: 2,
+        instruction:
+          "In a pan, cook pancetta until crisp and golden. Remove from heat.",
+        duration: 8,
+      },
+      {
+        order: 3,
+        instruction:
+          "Whisk egg yolks with grated parmesan and black pepper in a bowl.",
+        duration: 3,
+      },
+      {
+        order: 4,
+        instruction:
+          "Drain pasta, reserving 1 cup of cooking water. Toss hot spaghetti with pancetta and egg mixture off the heat.",
+        duration: 2,
+      },
+      {
+        order: 5,
+        instruction:
+          "Add a little reserved water to reach creamy consistency, adjust salt and pepper, then serve immediately.",
+        duration: 2,
+      },
+    ],
+    categories: [],
+    difficulty: "easy",
+    mealType: ["lunch", "dinner"],
+    prepTime: 10,
+    cookTime: 20,
+    servings: 4,
+    nutrition: {
+      calories: 520,
+      protein: 22,
+      carbohydrates: 60,
+      fat: 22,
+      fiber: 3,
+    },
+    imageUrl:
+      "https://images.unsplash.com/photo-1512058564366-c9e8ad20f3bb?auto=format&fit=crop&w=1200&q=80",
+    tags: ["seed", "italian", "pasta", "comfort food"],
+    isPublished: true,
+  },
+  {
+    title: "Mediterranean Quinoa Salad",
+    description:
+      "Light, protein-rich quinoa salad with cucumber, tomatoes, feta, and lemon-herb dressing.",
+    author: null,
+    source: "user",
+    spoonacularId: 314160,
+    spoonacularIngredientIds: [11124, 11215, 11477, 1001],
+    ingredients: [
+      { name: "quinoa", quantity: 200, unit: "g" },
+      { name: "cucumber", quantity: 1, unit: "piece" },
+      { name: "cherry tomatoes", quantity: 250, unit: "g" },
+      { name: "feta cheese", quantity: 120, unit: "g" },
+      { name: "red onion", quantity: 0.5, unit: "piece", isOptional: true },
+      { name: "olive oil", quantity: 3, unit: "tbsp" },
+      { name: "lemon juice", quantity: 2, unit: "tbsp" },
+      { name: "fresh parsley", quantity: 3, unit: "tbsp" },
+    ],
+    steps: [
+      { order: 1, instruction: "Rinse quinoa and cook with 2 cups water until fluffy.", duration: 15 },
+      {
+        order: 2,
+        instruction:
+          "Chop cucumber, tomatoes, red onion, and parsley; crumble the feta.",
+        duration: 8,
+      },
+      {
+        order: 3,
+        instruction:
+          "Whisk olive oil, lemon juice, salt and pepper; toss all ingredients together.",
+        duration: 4,
+      },
+      { order: 4, instruction: "Chill 10 minutes and serve.", duration: 10 },
+    ],
+    categories: [],
+    difficulty: "easy",
+    mealType: ["lunch", "dinner", "snack"],
+    prepTime: 15,
+    cookTime: 15,
+    servings: 4,
+    nutrition: {
+      calories: 320,
+      protein: 10,
+      carbohydrates: 38,
+      fat: 14,
+      fiber: 6,
+    },
+    imageUrl:
+      "https://images.unsplash.com/photo-1562967916-eb82221dfb3f?auto=format&fit=crop&w=1200&q=80",
+    tags: ["seed", "vegetarian", "gluten-free", "healthy"],
+    isPublished: true,
+  },
+];
+
+const samplePantryUser = {
+  name: "Seed User",
+  email: "seed.user@example.com",
+};
+
+const samplePantry = {
+  items: [
+    { spoonacularId: 1123, name: "egg", amount: 12, unit: "piece", imageUrl: "" },
+    { spoonacularId: 14412, name: "spaghetti", amount: 1, unit: "pack", imageUrl: "" },
+    { spoonacularId: 1001, name: "butter", amount: 200, unit: "g", imageUrl: "" },
+    { spoonacularId: 11215, name: "cucumber", amount: 2, unit: "piece", imageUrl: "" },
+    { spoonacularId: 11124, name: "quinoa", amount: 500, unit: "g", imageUrl: "" },
+  ],
+};
+
+async function seed() {
+  try {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Seed script must not run in production");
+    }
+
+    await connectDB();
+
+    console.log("Clearing seeded data...");
+    await Recipe.deleteMany({ tags: "seed" });
+    await Pantry.deleteMany({});
+    await User.deleteMany({ email: samplePantryUser.email });
+
+    console.log("Creating seed user...");
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+    const user = await User.create({
+      ...samplePantryUser,
+      password: hashedPassword,
+    });
+
+    console.log("Creating pantry...");
+    await Pantry.create({ userId: user._id, items: samplePantry.items });
+
+    console.log("Inserting sample recipes...");
+    const insertedRecipes = await Recipe.insertMany(sampleRecipes);
+
+    console.log(`Inserted ${insertedRecipes.length} recipes`);
+    console.log("✅ Seeding completed successfully!");
+  } catch (error) {
+    console.error("❌ Seeding failed:", error);
+    process.exitCode = 1;
+  } finally {
+    await mongoose.disconnect();
+  }
+}
+
+seed();
