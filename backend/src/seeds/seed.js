@@ -4,6 +4,7 @@ import connectDB from "../config/database.js";
 import Recipe from "../modules/recipe/recipe.model.js";
 import User from "../modules/user/user.model.js";
 import Pantry from "../modules/pantry/pantry.model.js";
+import { hashPassword } from "../utils/password.util.js";
 
 dotenv.config();
 
@@ -154,7 +155,8 @@ async function seed() {
     await User.deleteMany({ email: samplePantryUser.email });
 
     console.log("Creating seed user...");
-    const user = await User.create(samplePantryUser);
+    const hashedPwd = await hashPassword(samplePantryUser.password);
+    const user = await User.create({ ...samplePantryUser, password: hashedPwd });
 
     console.log("Preparing seeded pantry items...");
     await Pantry.create({ userId: user._id, items: samplePantry.items });
