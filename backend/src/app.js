@@ -16,6 +16,7 @@ app.use(express.json());
 app.use(morgan("dev"));
 
 import userRoutes from "./modules/user/user.route.js";
+import recipeRoutes from "./modules/recipe/recipe.route.js"; // Import Route của Recipe
 
 // Test route
 app.get("/", (req, res) => {
@@ -24,6 +25,7 @@ app.get("/", (req, res) => {
 
 // Các API nghiệp vụ
 app.use("/api/users", userRoutes);
+app.use("/api/recipes", recipeRoutes); // Nối Route Recipe vào đường dẫn /api/recipes
 // BẮT BUỘC ĐỂ Ở CUỐI CÙNG LÀ BỘ ĐÔI NÀY!
 app.use(notFound); // Chặn các route không tồn tại (404)
 app.use(errorHandler); // Nếu các file khác văng error (ví dụ code thiếu var), hứng vào đây hết
