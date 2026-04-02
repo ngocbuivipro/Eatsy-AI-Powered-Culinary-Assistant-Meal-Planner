@@ -7,14 +7,61 @@ import { hashPassword, comparePassword } from "../../utils/password.util.js";
 
 // [Task 1] Đăng ký truyền thống
 export const registerUser = catchAsync(async (req, res, next) => {
-  // Bạn sẽ hoàn thiện code logic ở đây sau
-  res.send("Chức năng Register");
+  const { name, email, password } = req.body;
+
+  if (!email || !password || !name) {
+    throw new ApiError(400, "Vui lòng nhập đầy đủ tên, email và mật khẩu");
+  }
+
+  // Kiểm tra email đã tồn tại hay chưa
+  const userExists = await User.findOne({ email });
+  if (userExists) {
+    throw new ApiError(400, "Email này đã được đăng ký, vui lòng dùng email khác");
+  }
+
+  // Mã hóa mật khẩu
+  const hashedPassword = await hashPassword(password);
+
+  // Tạo tài khoản
+  const user = await User.create({
+    name,
+    email,
+    password: hashedPassword,
+    authProvider: "local",
+  });
+
+  // Tự động cấp Token giúp văng thẳng vào bên trong màn hình Home
+  const token = generateToken({ id: user._id });
+
+  // Trả về Frontend (ko trả ra trường password)
+  user.password = undefined;
+
+  return sendResponse(res, 201, "Đăng ký tải khoản thành công", { user, token });
 });
 
 // [Task 2] Đăng nhập truyền thống
 export const loginUser = catchAsync(async (req, res, next) => {
-  // Bạn sẽ hoàn thiện code logic ở đây sau
-  res.send("Chức năng Login");
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    throw new ApiError(400, "Vui lòng nhập email và mật khẩu");
+  }
+
+  // Tìm user và phải nạy thêm móc .select("+password") vì Model mặc định giấu nó đi
+  const user = await User.findOne({ email }).select("+password");
+
+  // So pass
+  if (!user || !(await comparePassword(password, user.password))) {
+    throw new ApiError(401, "Sai email hoặc tài khoản, vui lòng thử lại");
+  }
+
+  // Cấp Token
+  const token = generateToken({ id: user._id });
+
+  // Giấu lại pass trước khi gửi về màn hình
+  user.password = undefined; 
+
+  return sendResponse(res, 200, "Đăng nhập thành công", { user, token });
 });
 
 // [Task 3] Đăng nhập OAuth (Google/Apple) - Tiền trạm

@@ -72,8 +72,8 @@
 📍 **Vị trí thao tác:** Thẳng ở đường ngõ `backend/seeder.js` (Chạy bằng lệnh `node seeder`)
 - **Description:** 
   1. Setup Script kết nối qua Mongo Atlas .
-  2. Phá băng xóa hết db cũ `await Ingredient.deleteMany(); await Recipe.deleteMany()`.
-  3. Gắn Data tĩnh vào Mảng (Trứng, Hành, Mắm) và ấn lệnh `insertMany()` để dội thẳng Mongoose Cloud lấp đầy dữ liệu.
+  2. Phá băng xóa hết db cũ `await Recipe.deleteMany(); await Category.deleteMany()`.
+  3. Gắn Data Mock thủ công (vài Category mẫu và Món ăn có kèm `spoonacularId`) và ấn lệnh `insertMany()` để dội thẳng Mongoose Cloud lấp đầy dữ liệu cơ bản.
 
 ---
 
@@ -97,12 +97,12 @@
 
 ## 🗓️ 5. Ngày 5: Trí Khôn Của App & Gom Báo Cáo Thành Tích
 
-### Task 10: Thuật Toán AI Phổ Thông Tìm Món (Recipe Matching Engine)
+### Task 10: AI Matching qua Spoonacular API (Recipe Matching Engine)
 📍 **Vị trí thao tác:** Xoáy sâu vào `src/modules/recipe/recipe.controller.js`
 - **Description:** 
-  1. Gắp toàn tuyến mảng Đồ ăn: Bóc `items` của Pantry tuồn thành 1 Array đút ruột ID Nguyên liệu.
-  2. Tích hợp lệnh `Recipe.find({ ingredient_ids: { $in: mang_id_cua_tu_lanh } })`.
-  3. Quét vòng lặp Array JS để đong đếm mức độ Giao Nhau (Intersection). Tính toán % Match xếp hạng (Sort DESC) ra mâm và bê ra qua `sendResponse()`.
+  1. Gắp toàn tuyến mảng Đồ ăn: Bóc `items` của Pantry tuồn thành 1 Array chuỗi ID Nguyên liệu (`spoonacularId`).
+  2. Bắn mảng này thẳng lên Endpoint API `findByIngredients` của Spoonacular. 
+  3. Spoonacular sẽ tự động trả về list % Match và món ăn. Hứng list đó, trộn thêm một số Recipe Local nếu rảnh rỗi, và trả ngay cho Frontend qua `sendResponse()`. Cực kỳ nhàn hạ!
 
 ### Task 11: Lưu trữ Postman Collection & Clean Code
 📍 **Vị trí thao tác:** Không gian chung toàn project
