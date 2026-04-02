@@ -1,123 +1,70 @@
-# 🍽️ Eatsy Backend API
+# 🍽️ Eatsy Backend API - Cấu Trúc Dự Án
 
-Backend API cho ứng dụng Trợ lý ẩm thực thông minh Eatsy. Server được xây dựng bằng **Node.js, Express, MongoDB (Mongoose)** và tuân thủ chặt chẽ kiến trúc phân tách theo tính năng (Feature-based Modular Architecture) lấy cảm hứng từ Domain-Driven Design (DDD).
+Tài liệu này là "bản đồ" siêu chuẩn giúp mọi thành viên trong nhóm hiểu rõ cách bố trí thư mục và viết code không bị "đụng hàng" (Conflict) nhau.
 
-Backend được thiết kế để đồng nhất 1:1 với các module nghiệp vụ ở trên Frontend (React Native).
-
----
-
-## 📁 Cấu Trúc Dự Án & Nhiệm Vụ Từng Thư Mục
+## 📁 Sơ Đồ Hạ Tầng Tổng Quan
 
 ```text
 eatsy-backend/
 ├── src/
-│   ├── config/              ← Móc nối hạ tầng (DB config, bên thứ 3)
-│   ├── middleware/          ← Các tầng kiểm duyệt (global middleware)
-│   ├── modules/             ← Các module nghiệp vụ theo Domain
-│   ├── shared/              ← Các utilities, helper dùng chung
+│   ├── config/              ← Các file cấu hình kết nối Database (MongoDB)
+│   ├── middleware/          ← Các "tường lửa" chắn ngang Request (Auth, Error)
+│   ├── modules/             ← Nơi chứa code nghiệp vụ chính (chia theo từng tính năng)
+│   ├── utils/               ← Các "đồ nghề" dùng chung (Mã hóa, bọc lỗi, sinh Token)
 │   ├── app.js               ← Khởi tạo Express, gập nối routes & middlewares
 │   └── server.js            ← Điểm khởi chạy (listen port & kết nối Database)
-├── .env                     ← (Chưa push) File chứa biến môi trường an toàn
-└── package.json             ← Quản lý thư viện và câu lệnh start/dev
+├── .env                     ← File chứa biến môi trường (Tuyệt đối KHÔNG push Github)
+└── package.json             ← Quản lý thư viện và script chạy app
 ```
 
 ---
 
-## 🔷 Các File Gốc (Root)
+## 🛠 Bộ Công Cụ Dùng Chung (`src/utils/`)
 
-| File                 | Nhiệm vụ                                                                                            |
-|----------------------|-----------------------------------------------------------------------------------------------------| 
-| `server.js`          | Tệp điểm nút để khởi chạy (entry point). Nhiệm vụ duy nhất là gọi `connectDB()` và chạy `app.listen()`. |
-| `app.js`             | Khởi tạo pipeline Express, cấu hình CORS, morgan (log requests), và tổng hợp tất cả các Router từ `modules/`. |
-| `.env`               | Biến môi trường (PORT, MONGO_URI, JWT_SECRET, OPENAI_API_KEY). |
+Đây là "kho báu" mà **Lead đã cấu hình sẵn**. Tất cả các Dev khi code bắt buộc phải lấy các đồ nghề này ra xài, **KHÔNG** tự viết lại thư viện gốc vào cụm Controller:
 
----
-
-## 🔷 `src/config/` & `src/middleware/` — Bộ Máy Hạ Tầng
-
-| Thư mục/File     | Nhiệm vụ |
-|------------------|----------|  
-| `config/`        | Chỉ chứa cấu hình hệ thống hoặc kết nối bên ngoài (ví dụ `db.js` cho MongoDB kết nối, cấu hình Redis, v.v.). **Tuyệt đối không có logic nghiệp vụ**. |
-| `middleware/`    | Logic can thiệp vào request toàn cục. Ví dụ: `auth.middleware.js` (xác thực token), `error.middleware.js` (xử lý lỗi chung). |
+- `jwt.util.js`: Hàm `generateToken` và `verifyToken` dùng để cấp vé và bẻ khóa.
+- `password.util.js`: Hàm `hashPassword` và `comparePassword` (mã hóa bcrypt).
+- `asyncHandler.util.js`: Cung cấp hàm `catchAsync`. **Bắt buộc bọc cái này ngoài mọi hàm controller** để không ai phải viết `try { ... } catch()` thủ công nữa.
+- `response.util.js`: Cung cấp hàm `sendResponse` để chuẩn hóa 100% định dạng JSON trả về cho Frontend.
+- `ApiError.util.js`: Khi check mật khẩu sai, trùng email... dùng cấu trúc `throw new ApiError(HTTP_CODE, "Thông báo")` để quăng lỗi chuyên nghiệp.
 
 ---
 
-## 🔷 `src/modules/` — Các Module Nghiệp Vụ
+## 🛡 Tường Lửa (`src/middleware/`)
 
-Mỗi folder ở đây đảm nhiệm một **Miền (Domain) duy nhất**, hoàn toàn độc lập và phản chiếu 100% với Frontend của bạn. Sự cô lập này giúp sửa lỗi và mở rộng dự án mà không sợ hỏng code chỗ khác.
-
-### Tổng quan các Module tương ứng
-
-| Module | Mục đích |
-|--------|----------|
-| `discovery/` | Lấy dữ liệu danh sách thịnh hành, phân trang công thức. |
-| `recipe/` | Cung cấp chi tiết công thức, lưu trữ data dinh dưỡng, tổng số đánh giá. |
-| `ingredient-engine/` | Logic phân tích từ hình ảnh/text thành mảng nguyên liệu. |
-| `ai-assistant/` | Endpoint gọi OpenAI/Gemini để tư vấn, streaming dữ liệu chat. |
-| `meal-planning/` | Lưu lịch ăn uống theo tuần, sinh tự động danh sách đi chợ. |
-| `user/` | Đăng ký, Đăng nhập (Auth), quản lý Profile, JWT Token và Cấu hình ăn kiêng. |
+- `auth.middleware.js`: Cung cấp hàm chặn `protect`. Ai làm tính năng yêu cầu bảo mật cao (Thêm/Sửa Tủ Lạnh, Tạo Công Thức, Cập nhật Profile), bắt buộc gắn `protect` vào cấu trúc Route để bắt User đưa Bearer Token.
+- `error.middleware.js`: Nới tự động đón hứng bất cứ lỗi nào từ `ApiError` văng ra và gửi thẳng xuống Frontend thành JSON đẹp đẽ.
 
 ---
 
-### Bộ Khung Bên Trong Mỗi Module
+## 🔷 Vùng Code Nghiệp Vụ (`src/modules/`)
 
-Khi bạn mở một folder (ví dụ: `src/modules/recipe/`), bạn sẽ luôn luôn thấy 6 file cốt lõi sau. Tất cả mọi module đều bị ép buộc tuân theo quy tắc xương sống này.
+Chúng ta áp dụng cấu trúc **Feature-based MVC cơ bản**. Mỗi folder ở đây tương ứng với 1 bảng dữ liệu lớn, ví dụ `user/`, `pantry/`, `recipe/`.
+
+Khi làm một Task (như Task 1: API Đăng ký), một module thông thường chỉ duy trì **3 FILE CỐT LÕI**:
 
 ```text
-modules/recipe/
-├── recipe.route.js          ← Khai báo Endpoint HTTP (Router)
-├── recipe.validation.js     ← Kiểm tra dữ liệu req.body/params hợp lệ
-├── recipe.controller.js     ← Nhận Request, trả Response (HTTP status)
-├── recipe.service.js        ← Chứa TOÀN BỘ não bộ & logic tính toán
-├── recipe.repository.js     ← Cầu nối duy nhất tương tác với Database
-└── recipe.model.js          ← Định nghĩa cấu trúc lưu trữ MongoDB (Schema)
+modules/user/
+├── user.route.js          ← Điều hướng mũi tên. Nhận (POST /register) và trỏ tới hàm tương ứng.
+├── user.controller.js     ← Bộ não trung tâm: Lấy dữ liệu từ User, kiểm tra logic, lưu Database và gọi gửi JSON trả về.
+└── user.model.js          ← Nơi định nghĩa bảng (Schema) MongoDB của Mongoose.
 ```
 
-#### Chi tiết vòng đời 1 request:
-
-1. **Route (`.route.js`)**: Nhận một request `POST /api/recipe/recommend` và uỷ quyền.
-2. **Validation (`.validation.js`)**: Kiểm tra xem `req.body` đã có mảng `ingredients` chưa, có gửi rỗng không? (Dùng Joi / Zod).
-3. **Controller (`.controller.js`)**: Lấy `req.body.ingredients` ném vào Service. Khi có kết quả sẽ trả về `res.status(200).json()`. *Tuyệt đối không code If/Else phức tạp hay query Data ở Controller.*
-4. **Service (`.service.js`)**: **TRÁI TIM QUAN TRỌNG NHẤT.** Nếu User VIP thì gọi AI gen công thức, nếu free thì lấy 3 công thức DB. Nơi đây sẽ kết nối các module với nhau. 
-5. **Repository (`.repository.js`)**: Chứa logic gọi Mongoose (ví dụ: `RecipeModel.find()`). Cách ly Mongoose để sau này muốn đổi DB khác cũng không cần sửa Controller/Service.
-6. **Model (`.model.js`)**: Mô hình JSON sẽ lưu vào MongoDB. 
+*(Lưu ý: Không tự ý phân nhỏ vẽ rắn thêm chân tạo các lớp quá sâu như Services, Repositories... trừ khi tính năng đó là siêu Thuật Toán AI cần băm nhỏ logic và đã được sự đồng ý của Lead).*
 
 ---
 
-## 🔷 `src/shared/` — Tiện ích dùng chung
+## 📐 Luồng Dữ Liệu Minh Họa
 
-Code tiện dụng đa mục đích không gắn với thực thể riêng biệt nào.
+Hãy ghi nhớ vòng khép kín này khi một API được gọi lên Server của chúng ta:
 
-| Thư mục | Nhiệm vụ | Vi dụ |
-|---------|-----------|-------|
-| `shared/exceptions/`| Lớp báo lỗi Custom của hệ thống          | `AppError.js`, `NotFoundError.js` |
-| `shared/utils/`     | Các hàm Helper đa năng                   | `jwtHelpers.js`, `logger.js`, `hashPassword.js` |
-
----
-
-## 📐 Luồng Dữ Liệu Chạy Trong Backend (Data Flow Pattern)
-
-Hãy nhớ chuỗi phản ứng sau cho mọi Request đẩy về Server:
-
-```text
-🌐 Trình Duyệt / App Gọi Tới
-           ↓
-[ ROUTE ] 👉 Phân luồng endpoint (vd: POST /login)
-           ↓
-[ MIDDLEWARE / VALIDATOR ] 👉 Chặn lại nếu thiếu Token hoặc Body sai định dạng
-           ↓
-[ CONTROLLER ] 👉 Nhận mớ dữ liệu "sạch sẽ", bóc tách ra.
-           ↓
-[ SERVICE ] 👉 Nơi giải quyết nghiệp vụ, mã hoá pass, gửi mail.
-           ↓
-[ REPOSITORY ] 👉 Viết/Đọc Mongoose Database.
-           ↓
-📦 Database MONGODB
-```
-
----
-
-## 🚀 Tính Linh Hoạt (Quy Ước)
-
-*   **Chỉ Service mới có quyền gọi chéo Service khác**: Ví dụ, `RecipeService.js` có thể gọi `AiAssassinService.generateMeal()` nhưng nó **KHÔNG ĐƯỢC PHÉP** gọi `AiAssassinController`.
-*   **Controller chỉ biết xử lý Response**: Không xử lý Database, chỉ gọi `res.send / res.json`. Nếu `Service` quăng lỗi (`throw error`), `Controller` để cho Middleware xử lý (`next(error)`).
+1. **Frontend Gọi (Request)**: Gửi lên đống data bằng JSON.
+2. **Router (`.route.js`)**: Phát hiện đường dẫn -> Đẩy người gửi qua bưu điện kế tiếp.
+3. **Middleware (`.middleware.js`)**: Nếu Route yêu cầu có `protect`, bảo vệ sẽ kiểm tra Vé (Token). Không có vé -> Văng `ApiError(401)`.
+4. **Controller (`.controller.js`)**:
+   - Nhận mớ dữ liệu `req.body`
+   - Quăng lỗi nếu email trống (`throw new ApiError(...)`)
+   - Lưu Data xuống Mongo thông qua `Model`
+   - Trả hàng lại cho FE thông qua `sendResponse(...)`
+5. **Database (MongoDB)**: Mỉm cười cất thông tin vào ngăn kéo.
