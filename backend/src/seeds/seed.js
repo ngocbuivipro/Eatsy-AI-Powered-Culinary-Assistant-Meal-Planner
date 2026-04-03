@@ -4,6 +4,7 @@ import connectDB from "../config/database.js";
 import Recipe from "../modules/recipe/recipe.model.js";
 import User from "../modules/user/user.model.js";
 import Pantry from "../modules/pantry/pantry.model.js";
+import Category from "../modules/category/category.model.js";
 import { hashPassword } from "../utils/password.util.js";
 
 dotenv.config();
@@ -129,6 +130,44 @@ const sampleRecipes = [
   },
 ];
 
+const sampleCategories = [
+  {
+    name: "Breakfast",
+    spoonacularTag: "breakfast",
+    tagType: "type",
+    imageUrl: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?auto=format&fit=crop&w=800&q=80",
+    sortOrder: 1,
+  },
+  {
+    name: "Vegetarian",
+    spoonacularTag: "vegetarian",
+    tagType: "diet",
+    imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80",
+    sortOrder: 2,
+  },
+  {
+    name: "Italian",
+    spoonacularTag: "italian",
+    tagType: "cuisine",
+    imageUrl: "https://images.unsplash.com/photo-1498579127083-f7451307b897?auto=format&fit=crop&w=800&q=80",
+    sortOrder: 3,
+  },
+  {
+    name: "Main Course",
+    spoonacularTag: "main course",
+    tagType: "type",
+    imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80",
+    sortOrder: 4,
+  },
+  {
+    name: "Dessert",
+    spoonacularTag: "dessert",
+    tagType: "type",
+    imageUrl: "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=800&q=80",
+    sortOrder: 5,
+  },
+];
+
 const samplePantryUser = {
   name: "Seed User",
   email: "seed.user@example.com",
@@ -149,9 +188,10 @@ async function seed() {
   try {
     await connectDB();
 
-    console.log("Clearing Recipe/User/Pantry collections...");
+    console.log("Clearing Recipe/User/Pantry/Category collections...");
     await Recipe.deleteMany();
     await Pantry.deleteMany();
+    await Category.deleteMany();
     await User.deleteMany({ email: samplePantryUser.email });
 
     console.log("Creating seed user...");
@@ -163,6 +203,9 @@ async function seed() {
 
     console.log("Inserting sample recipe documents...");
     await Recipe.create(sampleRecipes);
+
+    console.log("Inserting sample category documents...");
+    await Category.create(sampleCategories);
 
     console.log("✅ Seeding completed successfully!");
   } catch (error) {
