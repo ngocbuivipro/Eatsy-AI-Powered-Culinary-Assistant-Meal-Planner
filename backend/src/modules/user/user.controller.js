@@ -109,3 +109,53 @@ export const oauthLogin = catchAsync(async (req, res, next) => {
     token 
   });
 });
+
+// [Task 4] Lấy thông tin hồ sơ người dùng hiện tại
+export const getCurrentUserProfile = catchAsync(async (req, res, next) => {
+  const user = req.user;
+
+  if (!user) {
+    throw new ApiError(401, "Người dùng chưa xác thực");
+  }
+
+  return sendResponse(res, 200, "Lấy thông tin hồ sơ thành công", { user });
+});
+
+// [Task 5] Cập nhật hồ sơ người dùng hiện tại
+export const updateCurrentUserProfile = catchAsync(async (req, res, next) => {
+  const userId = req.user?._id;
+
+  if (!userId) {
+    throw new ApiError(401, "Người dùng chưa xác thực");
+  }
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new ApiError(404, "Không tìm thấy người dùng");
+  }
+
+  const allowedFields = ["name", "avatarUrl", "dietaryPreferences", "healthGoals"];
+
+  allowedFields.forEach((field) => {
+    if (req.body[field] !== undefined) {
+      user[field] = req.body[field];
+    }
+  });
+
+  // Không cho phép cập nhật các trường nhạy cảm bằng request body trực tiếp
+  // (các trường này nằm trong model nhưng không được cho phép cập nhật ở đây)
+  const blockedFields = ["_id", "authProvider", "googleId", "appleId", "savedRecipes", "isActive", "password"];
+
+  blockedFields.forEach((field) => {
+    if (req.body[field] !== undefined) {
+      // chỉ bỏ qua chứ không throw;
+    }
+  });
+
+  const updatedUser = await user.save();
+
+  updatedUser.password = undefined;
+
+  return sendResponse(res, 200, "Cập nhật hồ sơ thành công", { user: updatedUser });
+});
