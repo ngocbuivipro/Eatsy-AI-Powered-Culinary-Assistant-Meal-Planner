@@ -1,192 +1,174 @@
-# 🧪 EATSY BACKEND — API TEST DATA (POSTMAN)
+# EATSY — POSTMAN TEST DATA
 
-> **Base URL:** `http://localhost:5050`  
-> **Content-Type:** `application/json`  
-> **Auth:** Bearer Token (lấy từ response Login / Register)
+> Base URL: `http://localhost:5050`
+> Mọi request có body đều cần Header: `Content-Type: application/json`
 
 ---
 
-## ⚙️ HƯỚNG DẪN CHUẨN BỊ
+## BƯỚC 0 — KHỞI ĐỘNG (chạy 1 lần duy nhất)
 
-### Bước 1 — Khởi động Server
 ```bash
+# Terminal 1: Chạy server
 cd backend
 npm run dev
-```
 
-### Bước 2 — Seed dữ liệu mẫu vào DB (chỉ chạy 1 lần)
-```bash
+# Terminal 2: Seed dữ liệu mẫu
 node src/seeds/seed.js
 ```
-> ⚠️ Lệnh seed sẽ **xóa sạch** Recipe, Pantry, Category cũ và tạo dữ liệu mẫu mới.  
-> Seed tạo sẵn 1 user: `seed.user@example.com` / `password123`
-
-### Bước 3 — Cấu hình Postman Environment
-| Variable | Value |
-|---|---|
-| `BASE_URL` | `http://localhost:5050` |
-| `TOKEN` | *(dán token sau khi Login)* |
-
-### Bước 4 — Thêm Authorization vào các request cần auth
-- Tab **Authorization** → Type: **Bearer Token**
-- Value: `{{TOKEN}}`
 
 ---
 
-## ✅ TASK 1 — Đăng Ký Tài Khoản (Register)
+---
 
-### API
+## TASK 1 — ĐĂNG KÝ TÀI KHOẢN
+
 ```
-POST {{BASE_URL}}/api/users/register
+Method : POST
+URL    : http://localhost:5050/api/users/register
 ```
 
-### Body (JSON)
+**Headers**
+```
+Content-Type: application/json
+```
+
+**Body (raw → JSON)**
 ```json
 {
-  "name": "Nguyễn Văn A",
-  "email": "vana@example.com",
+  "name": "Nguyen Van A",
+  "email": "vana@gmail.com",
   "password": "123456"
 }
 ```
 
-### Expected Response `201`
+**Kết quả mong đợi → Status 201**
 ```json
 {
   "success": true,
   "message": "Đăng ký tải khoản thành công",
   "data": {
     "user": {
-      "_id": "...",
-      "name": "Nguyễn Văn A",
-      "email": "vana@example.com",
-      "authProvider": "local"
+      "name": "Nguyen Van A",
+      "email": "vana@gmail.com"
     },
-    "token": "eyJhbGc..."
+    "token": "<COPY_TOKEN_NÀY>"
   }
 }
 ```
 
-### Test Cases
-| Case | Input | Expected |
-|---|---|---|
-| ✅ Thành công | body đầy đủ, email mới | 201 + token |
-| ❌ Thiếu name | bỏ field `name` | 400 "Vui lòng nhập đầy đủ..." |
-| ❌ Email trùng | email đã tồn tại | 400 "Email này đã được đăng ký..." |
-| ❌ Thiếu password | bỏ field `password` | 400 |
-
 ---
 
-## ✅ TASK 2 — Đăng Nhập (Login)
+## TASK 2 — ĐĂNG NHẬP
 
-### API
 ```
-POST {{BASE_URL}}/api/users/login
+Method : POST
+URL    : http://localhost:5050/api/users/login
 ```
 
-### Body (JSON)
+**Headers**
+```
+Content-Type: application/json
+```
+
+**Body (raw → JSON)**
 ```json
 {
-  "email": "vana@example.com",
+  "email": "vana@gmail.com",
   "password": "123456"
 }
 ```
-> 💡 Hoặc dùng tài khoản seed: `seed.user@example.com` / `password123`
 
-### Expected Response `200`
+> Hoặc dùng tài khoản seed sẵn:
+```json
+{
+  "email": "seed.user@example.com",
+  "password": "password123"
+}
+```
+
+**Kết quả mong đợi → Status 200**
 ```json
 {
   "success": true,
   "message": "Đăng nhập thành công",
   "data": {
     "user": {
-      "_id": "...",
-      "name": "Nguyễn Văn A",
-      "email": "vana@example.com"
+      "name": "Nguyen Van A",
+      "email": "vana@gmail.com"
     },
-    "token": "eyJhbGc..."
+    "token": "<COPY_TOKEN_NÀY>"
   }
 }
 ```
 
-> 📌 **Copy token này vào biến `{{TOKEN}}` của Postman Environment!**
-
-### Test Cases
-| Case | Input | Expected |
-|---|---|---|
-| ✅ Thành công | email + pass đúng | 200 + token |
-| ❌ Sai password | pass sai | 401 "Sai email hoặc tài khoản..." |
-| ❌ Email không tồn tại | email chưa đăng ký | 401 |
-| ❌ Thiếu email | bỏ field `email` | 400 |
+> ⚠️ Copy trường `token` từ response, dùng cho tất cả các task bên dưới.
 
 ---
 
-## ✅ TASK 3 — Đăng Nhập OAuth Google/Apple
+## TASK 3 — ĐĂNG NHẬP GOOGLE / APPLE (OAuth)
 
-### API
 ```
-POST {{BASE_URL}}/api/users/oauth
+Method : POST
+URL    : http://localhost:5050/api/users/oauth
 ```
 
-### Body (JSON) — Đăng nhập Google
+**Headers**
+```
+Content-Type: application/json
+```
+
+**Body Google (raw → JSON)**
 ```json
 {
   "email": "googleuser@gmail.com",
   "name": "Google User",
-  "providerId": "google-uid-12345678",
+  "providerId": "google-uid-123456789",
   "authProvider": "google",
-  "avatarUrl": "https://lh3.googleusercontent.com/example.jpg"
+  "avatarUrl": "https://lh3.googleusercontent.com/avatar.jpg"
 }
 ```
 
-### Body (JSON) — Đăng nhập Apple
+**Body Apple (raw → JSON)**
 ```json
 {
   "email": "appleuser@icloud.com",
   "name": "Apple User",
-  "providerId": "apple-uid-87654321",
+  "providerId": "apple-uid-987654321",
   "authProvider": "apple",
   "avatarUrl": ""
 }
 ```
 
-### Expected Response `200`
+**Kết quả mong đợi → Status 200**
 ```json
 {
   "success": true,
   "message": "Đăng nhập OAuth thành công!",
   "data": {
     "user": { ... },
-    "token": "eyJhbGc..."
+    "token": "<TOKEN>"
   }
 }
 ```
 
-### Test Cases
-| Case | Input | Expected |
-|---|---|---|
-| ✅ User Google mới | email chưa tồn tại | 200 + tự tạo tài khoản |
-| ✅ User Google cũ | email đã có trong DB | 200 + cập nhật googleId |
-| ❌ Thiếu providerId | bỏ field `providerId` | 400 "Thiếu thông tin cần thiết..." |
-| ❌ Thiếu authProvider | bỏ field `authProvider` | 400 |
-
 ---
 
-## ✅ TASK 4 & 5 — Hồ Sơ Người Dùng (User Profile)
-
-> 🔒 **Yêu cầu Auth:** Cần đặt Bearer Token
-
-### 4a. Lấy Hồ Sơ (Get Profile)
+## TASK 4 — XEM HỒ SƠ NGƯỜI DÙNG
 
 ```
-GET {{BASE_URL}}/api/users/profile
+Method : GET
+URL    : http://localhost:5050/api/users/profile
 ```
 
-**Headers:**
+**Headers**
 ```
-Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+Authorization: Bearer <DÁN_TOKEN_VÀO_ĐÂY>
 ```
 
-**Expected Response `200`**
+*(Không có body)*
+
+**Kết quả mong đợi → Status 200**
 ```json
 {
   "success": true,
@@ -194,31 +176,44 @@ Authorization: Bearer {{TOKEN}}
   "data": {
     "user": {
       "_id": "...",
-      "name": "Nguyễn Văn A",
-      "email": "vana@example.com",
-      "dietaryPreferences": { "dietType": "omnivore", "allergies": [] },
-      "healthGoals": { "goal": "maintain", "dailyCalorieTarget": 2000 }
+      "name": "Nguyen Van A",
+      "email": "vana@gmail.com",
+      "authProvider": "local",
+      "dietaryPreferences": {
+        "dietType": "omnivore",
+        "allergies": [],
+        "dislikedIngredients": [],
+        "cuisinePreferences": []
+      },
+      "healthGoals": {
+        "goal": "maintain",
+        "dailyCalorieTarget": 2000
+      }
     }
   }
 }
 ```
 
-### 4b. Cập Nhật Hồ Sơ (Update Profile)
+---
+
+## TASK 5 — CẬP NHẬT HỒ SƠ NGƯỜI DÙNG
 
 ```
-PUT {{BASE_URL}}/api/users/profile
+Method : PUT
+URL    : http://localhost:5050/api/users/profile
 ```
 
-**Headers:**
+**Headers**
 ```
-Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+Authorization: Bearer <DÁN_TOKEN_VÀO_ĐÂY>
 ```
 
-**Body (JSON)**
+**Body (raw → JSON)**
 ```json
 {
-  "name": "Nguyễn Văn A (Updated)",
-  "avatarUrl": "https://example.com/avatar.jpg",
+  "name": "Nguyen Van A Updated",
+  "avatarUrl": "https://example.com/my-avatar.jpg",
   "dietaryPreferences": {
     "dietType": "vegetarian",
     "allergies": ["nuts", "shellfish"],
@@ -232,41 +227,46 @@ Authorization: Bearer {{TOKEN}}
 }
 ```
 
-**Expected Response `200`**
+**Kết quả mong đợi → Status 200**
 ```json
 {
   "success": true,
   "message": "Cập nhật hồ sơ thành công",
   "data": {
     "user": {
-      "name": "Nguyễn Văn A (Updated)",
-      "dietaryPreferences": { "dietType": "vegetarian", ... }
+      "name": "Nguyen Van A Updated",
+      "dietaryPreferences": {
+        "dietType": "vegetarian",
+        "allergies": ["nuts", "shellfish"]
+      },
+      "healthGoals": {
+        "goal": "lose_weight",
+        "dailyCalorieTarget": 1800
+      }
     }
   }
 }
 ```
 
-### Test Cases
-| Case | Input | Expected |
-|---|---|---|
-| ✅ Get profile thành công | Token hợp lệ | 200 + user data |
-| ✅ Update name | `{ "name": "..." }` | 200 + user updated |
-| ✅ Update dietaryPreferences | JSON hợp lệ | 200 |
-| ❌ Không có token | Bỏ Authorization header | 401 Unauthorized |
-| ❌ Token sai | Token giả | 401 |
-
 ---
 
-## ✅ TASK 6 — Danh Mục Thực Phẩm (Categories)
+## TASK 6 — LẤY DANH MỤC (Categories)
 
-> 🌐 **Public API** — Không cần token
+> Không cần token, public API.
 
-### API
 ```
-GET {{BASE_URL}}/api/categories
+Method : GET
+URL    : http://localhost:5050/api/categories
 ```
 
-### Expected Response `200`
+**Headers**
+```
+Content-Type: application/json
+```
+
+*(Không có body)*
+
+**Kết quả mong đợi → Status 200**
 ```json
 {
   "success": true,
@@ -278,7 +278,6 @@ GET {{BASE_URL}}/api/categories
         "name": "Breakfast",
         "spoonacularTag": "breakfast",
         "tagType": "type",
-        "imageUrl": "https://...",
         "sortOrder": 1,
         "isActive": true
       },
@@ -288,33 +287,46 @@ GET {{BASE_URL}}/api/categories
         "spoonacularTag": "vegetarian",
         "tagType": "diet",
         "sortOrder": 2
+      },
+      {
+        "_id": "...",
+        "name": "Italian",
+        "spoonacularTag": "italian",
+        "tagType": "cuisine",
+        "sortOrder": 3
+      },
+      {
+        "_id": "...",
+        "name": "Main Course",
+        "spoonacularTag": "main course",
+        "tagType": "type",
+        "sortOrder": 4
+      },
+      {
+        "_id": "...",
+        "name": "Dessert",
+        "spoonacularTag": "dessert",
+        "tagType": "type",
+        "sortOrder": 5
       }
     ]
   }
 }
 ```
 
-### Test Cases
-| Case | Input | Expected |
-|---|---|---|
-| ✅ Lấy tất cả category | GET không có body | 200 + array categories |
-| ✅ Kết quả đã sort | - | sortOrder tăng dần (1,2,3...) |
-
-> ⚠️ Nếu kết quả trả về mảng rỗng `[]`, hãy chạy seed lại: `node src/seeds/seed.js`
+> ⚠️ Nếu `categories` trả về mảng rỗng `[]` → chạy `node src/seeds/seed.js` rồi thử lại.
 
 ---
 
-## ✅ TASK 7 — Seeding Database
+## TASK 7 — SEED DATABASE
 
-> Đây là script chạy bằng terminal, không test qua Postman.
+> Không test qua Postman. Chạy lệnh dưới đây trong terminal.
 
-### Lệnh chạy Seed
 ```bash
-cd backend
 node src/seeds/seed.js
 ```
 
-### Expected Output (Terminal)
+**Output terminal khi thành công:**
 ```
 Clearing Recipe/User/Pantry/Category collections...
 Creating seed user...
@@ -324,32 +336,33 @@ Inserting sample category documents...
 ✅ Seeding completed successfully!
 ```
 
-### Dữ liệu mẫu được tạo
-| Collection | Số lượng | Ghi chú |
-|---|---|---|
-| User | 1 | `seed.user@example.com` / `password123` |
-| Recipe | 2 | Carbonara, Quinoa Salad |
-| Category | 5 | Breakfast, Vegetarian, Italian, Main Course, Dessert |
-| Pantry | 1 | 5 nguyên liệu (egg, spaghetti, butter, cucumber, quinoa) |
+**Dữ liệu được tạo ra:**
+
+| Collection | Nội dung |
+|---|---|
+| User | `seed.user@example.com` / `password123` |
+| Recipe | Classic Spaghetti Carbonara, Mediterranean Quinoa Salad |
+| Category | Breakfast, Vegetarian, Italian, Main Course, Dessert |
+| Pantry | egg, spaghetti, butter, cucumber, quinoa |
 
 ---
 
-## ✅ TASK 8 — Tủ Lạnh Pantry
-
-> 🔒 **Yêu cầu Auth:** Cần đặt Bearer Token
-
-### 8a. Lấy Tủ Lạnh (Get Pantry)
+## TASK 8A — XEM TỦ LẠNH (Get Pantry)
 
 ```
-GET {{BASE_URL}}/api/pantry
+Method : GET
+URL    : http://localhost:5050/api/pantry
 ```
 
-**Headers:**
+**Headers**
 ```
-Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+Authorization: Bearer <DÁN_TOKEN_VÀO_ĐÂY>
 ```
 
-**Expected Response `200`**
+*(Không có body)*
+
+**Kết quả mong đợi → Status 200**
 ```json
 {
   "success": true,
@@ -360,7 +373,7 @@ Authorization: Bearer {{TOKEN}}
       "userId": "...",
       "items": [
         {
-          "_id": "...",
+          "_id": "661abc123def456ghi000001",
           "spoonacularId": 1123,
           "name": "egg",
           "amount": 12,
@@ -372,22 +385,25 @@ Authorization: Bearer {{TOKEN}}
 }
 ```
 
-> 💡 Nếu user chưa có pantry, API sẽ **tự động tạo pantry rỗng** và trả về.
+> 💡 Nếu user mới chưa có tủ → API tự tạo pantry rỗng, trả về `items: []`.
+> Copy `_id` của bất kỳ item nào để dùng cho TASK 8C bên dưới.
 
 ---
 
-### 8b. Thêm Nguyên Liệu (Add Item to Pantry)
+## TASK 8B — THÊM NGUYÊN LIỆU VÀO TỦ (Add Pantry Item)
 
 ```
-POST {{BASE_URL}}/api/pantry
+Method : POST
+URL    : http://localhost:5050/api/pantry
 ```
 
-**Headers:**
+**Headers**
 ```
-Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+Authorization: Bearer <DÁN_TOKEN_VÀO_ĐÂY>
 ```
 
-**Body (JSON)**
+**Body (raw → JSON)**
 ```json
 {
   "spoonacularId": 9040,
@@ -398,14 +414,61 @@ Authorization: Bearer {{TOKEN}}
 }
 ```
 
-**Expected Response `201`**
+**Kết quả mong đợi → Status 201**
 ```json
 {
   "success": true,
   "message": "Thêm nguyên liệu thành công",
   "data": {
     "pantry": {
-      "items": [ ... ]
+      "items": [
+        {
+          "_id": "661abc123def456ghi000099",
+          "spoonacularId": 9040,
+          "name": "banana",
+          "amount": 5,
+          "unit": "piece"
+        }
+      ]
+    }
+  }
+}
+```
+
+> Copy `_id` của item vừa thêm để test TASK 8C.
+
+---
+
+## TASK 8C — XÓA NGUYÊN LIỆU KHỎI TỦ (Delete Pantry Item)
+
+> Thay `<ITEM_ID>` bằng `_id` lấy từ GET /api/pantry ở bước 8A hoặc 8B.
+
+```
+Method : DELETE
+URL    : http://localhost:5050/api/pantry/<ITEM_ID>
+```
+
+**Ví dụ URL thực tế:**
+```
+http://localhost:5050/api/pantry/661abc123def456ghi000099
+```
+
+**Headers**
+```
+Content-Type: application/json
+Authorization: Bearer <DÁN_TOKEN_VÀO_ĐÂY>
+```
+
+*(Không có body)*
+
+**Kết quả mong đợi → Status 200**
+```json
+{
+  "success": true,
+  "message": "Xóa nguyên liệu thành công",
+  "data": {
+    "pantry": {
+      "items": []
     }
   }
 }
@@ -413,66 +476,24 @@ Authorization: Bearer {{TOKEN}}
 
 ---
 
-### 8c. Xóa Nguyên Liệu (Delete Item from Pantry)
-
-> 💡 **Lấy `itemId`** từ kết quả của `GET /api/pantry` (trường `items[0]._id`)
+## TASK 9 — TẠO CÔNG THỨC MỚI (Create Recipe)
 
 ```
-DELETE {{BASE_URL}}/api/pantry/{{itemId}}
+Method : POST
+URL    : http://localhost:5050/api/recipes
 ```
 
-**Ví dụ:**
+**Headers**
 ```
-DELETE {{BASE_URL}}/api/pantry/661abc123def456ghi789jkl
-```
-
-**Headers:**
-```
-Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+Authorization: Bearer <DÁN_TOKEN_VÀO_ĐÂY>
 ```
 
-**Expected Response `200`**
+**Body (raw → JSON)**
 ```json
 {
-  "success": true,
-  "message": "Xóa nguyên liệu thành công",
-  "data": {
-    "pantry": { ... }
-  }
-}
-```
-
-### Test Cases — Pantry
-| Case | API | Expected |
-|---|---|---|
-| ✅ GET pantry lần đầu (user mới) | GET /api/pantry | 200 + pantry rỗng tự tạo |
-| ✅ Thêm nguyên liệu hợp lệ | POST body đầy đủ | 201 |
-| ✅ Xóa nguyên liệu tồn tại | DELETE với itemId đúng | 200 |
-| ❌ Thiếu spoonacularId | POST bỏ field | 400 "Thiếu spoonacularId hoặc name..." |
-| ❌ itemId không tồn tại | DELETE id sai | 404 "Không tìm thấy nguyên liệu..." |
-| ❌ Không có token | Bỏ Authorization | 401 |
-
----
-
-## ✅ TASK 9 — Tạo Công Thức Mới (Create Recipe)
-
-> 🔒 **Yêu cầu Auth:** Cần đặt Bearer Token
-
-### API
-```
-POST {{BASE_URL}}/api/recipes
-```
-
-**Headers:**
-```
-Authorization: Bearer {{TOKEN}}
-```
-
-**Body (JSON)**
-```json
-{
-  "title": "Phở Bò Hà Nội",
-  "description": "Tô phở bò truyền thống Hà Nội với nước dùng hầm xương trâu thơm ngon đậm đà.",
+  "title": "Pho Bo Ha Noi",
+  "description": "Traditional Hanoi beef pho with rich bone broth, tender beef slices and fresh herbs.",
   "ingredients": [
     { "name": "beef bones", "quantity": 1, "unit": "kg" },
     { "name": "rice noodle", "quantity": 400, "unit": "g" },
@@ -483,10 +504,10 @@ Authorization: Bearer {{TOKEN}}
     { "name": "fish sauce", "quantity": 3, "unit": "tbsp" }
   ],
   "steps": [
-    { "order": 1, "instruction": "Chần xương bò qua nước sôi, rửa sạch.", "duration": 10 },
-    { "order": 2, "instruction": "Nướng hành và gừng cho thơm, thêm vào nồi xương.", "duration": 5 },
-    { "order": 3, "instruction": "Hầm xương 4-6 tiếng với các loại gia vị.", "duration": 360 },
-    { "order": 4, "instruction": "Trụng bánh phở, xếp thịt bò, chan nước dùng nóng.", "duration": 5 }
+    { "order": 1, "instruction": "Blanch beef bones in boiling water for 5 minutes, then rinse clean.", "duration": 10 },
+    { "order": 2, "instruction": "Char onion and ginger directly over flame until fragrant, add to pot.", "duration": 5 },
+    { "order": 3, "instruction": "Simmer bones with spices on low heat for 4-6 hours.", "duration": 360 },
+    { "order": 4, "instruction": "Blanch rice noodles, top with beef slices, ladle hot broth over and serve.", "duration": 5 }
   ],
   "difficulty": "hard",
   "mealType": ["breakfast", "lunch"],
@@ -500,12 +521,12 @@ Authorization: Bearer {{TOKEN}}
     "fat": 10,
     "fiber": 2
   },
-  "imageUrl": "https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=800",
+  "imageUrl": "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=800",
   "tags": ["vietnamese", "soup", "beef", "pho"]
 }
 ```
 
-**Expected Response `201`**
+**Kết quả mong đợi → Status 201**
 ```json
 {
   "success": true,
@@ -513,45 +534,41 @@ Authorization: Bearer {{TOKEN}}
   "data": {
     "recipe": {
       "_id": "...",
-      "title": "Phở Bò Hà Nội",
-      "author": "{{USER_ID}}",
+      "title": "Pho Bo Ha Noi",
+      "author": "<USER_ID_TỰ_GÁN_TỪ_TOKEN>",
       "source": "user",
-      ...
+      "difficulty": "hard",
+      "prepTime": 30,
+      "cookTime": 360,
+      "servings": 4,
+      "isPublished": true
     }
   }
 }
 ```
 
-### Test Cases
-| Case | Input | Expected |
-|---|---|---|
-| ✅ Tạo recipe đầy đủ | body như trên | 201 + recipe object |
-| ✅ Author tự động gán | (không cần truyền author) | `author` = user ID từ token |
-| ❌ Thiếu title | bỏ `title` | 400 |
-| ❌ Thiếu ingredients | bỏ `ingredients` | 400 |
-| ❌ ingredients rỗng | `"ingredients": []` | 400 "phải có ít nhất 1 nguyên liệu" |
-| ❌ steps rỗng | `"steps": []` | 400 "phải có ít nhất 1 bước" |
-| ❌ difficulty sai enum | `"difficulty": "super_hard"` | 400 Validation error |
-| ❌ Không có token | Bỏ Authorization | 401 |
-
 ---
 
-## ✅ TASK 10 — AI Recipe Matching (Spoonacular)
+## TASK 10 — AI GỢI Ý MÓN ĂN (Recipe Match)
 
-> 🔒 **Yêu cầu Auth:** Cần đặt Bearer Token  
-> ⚠️ **Yêu cầu:** Pantry phải có ít nhất 1 nguyên liệu + `SPOONACULAR_API_KEY` trong `.env`
+> ⚠️ Trước khi test Task 10, kiểm tra:
+> 1. File `.env` có `SPOONACULAR_API_KEY=your_key`
+> 2. User đang dùng đã có nguyên liệu trong pantry (hoặc login bằng seed.user)
 
-### API
 ```
-GET {{BASE_URL}}/api/recipes/match
-```
-
-**Headers:**
-```
-Authorization: Bearer {{TOKEN}}
+Method : GET
+URL    : http://localhost:5050/api/recipes/match
 ```
 
-**Expected Response `200`**
+**Headers**
+```
+Content-Type: application/json
+Authorization: Bearer <DÁN_TOKEN_VÀO_ĐÂY>
+```
+
+*(Không có body)*
+
+**Kết quả mong đợi → Status 200**
 ```json
 {
   "success": true,
@@ -561,76 +578,43 @@ Authorization: Bearer {{TOKEN}}
       "id": 654959,
       "title": "Pasta With Tuna",
       "image": "https://img.spoonacular.com/recipes/654959-312x231.jpg",
-      "usedIngredientCount": 3,
-      "missedIngredientCount": 2,
-      "usedIngredients": [ ... ],
-      "missedIngredients": [ ... ]
+      "usedIngredientCount": 4,
+      "missedIngredientCount": 1,
+      "usedIngredients": [
+        { "id": 1123, "name": "egg", "amount": 2, "unit": "large" }
+      ],
+      "missedIngredients": [
+        { "id": 15121, "name": "tuna", "amount": 1, "unit": "can" }
+      ]
     }
   ]
 }
 ```
 
-### Test Cases
-| Case | Điều kiện | Expected |
-|---|---|---|
-| ✅ Match thành công | Pantry có nguyên liệu, API key hợp lệ | 200 + danh sách món gợi ý |
-| ❌ Pantry rỗng | Tủ lạnh chưa có nguyên liệu nào | 400 "Tủ lạnh của bạn đang trống!" |
-| ❌ API key thiếu | Bỏ SPOONACULAR_API_KEY trong .env | 500 "bị cấu hình thiếu SPOONACULAR_API_KEY" |
-| ❌ Không có token | Bỏ Authorization | 401 |
-
-### Cách test nhanh Task 10
+**Cách test nhanh nhất:**
 ```
-1. Đăng nhập bằng seed.user@example.com / password123
-2. Copy token
-3. Gọi GET /api/recipes/match với token đó
-   → seed user đã có sẵn 5 nguyên liệu trong pantry (egg, spaghetti, butter, cucumber, quinoa)
+1. Chạy: node src/seeds/seed.js
+2. POST /api/users/login  với  seed.user@example.com / password123
+3. Copy token
+4. GET /api/recipes/match với token đó
+   → seed user đã có sẵn: egg, spaghetti, butter, cucumber, quinoa
 ```
 
 ---
 
-## 📋 TỔNG HỢP TẤT CẢ API
+## TỔNG HỢP NHANH
 
-| # | Task | Method | Endpoint | Auth |
-|---|---|---|---|---|
-| 1 | Register | `POST` | `/api/users/register` | ❌ |
-| 2 | Login | `POST` | `/api/users/login` | ❌ |
-| 3 | OAuth Login | `POST` | `/api/users/oauth` | ❌ |
-| 4 | Get Profile | `GET` | `/api/users/profile` | ✅ |
-| 5 | Update Profile | `PUT` | `/api/users/profile` | ✅ |
-| 6 | Get Categories | `GET` | `/api/categories` | ❌ |
-| 7 | Seed DB | *(terminal)* | `node src/seeds/seed.js` | ❌ |
-| 8a | Get Pantry | `GET` | `/api/pantry` | ✅ |
-| 8b | Add Pantry Item | `POST` | `/api/pantry` | ✅ |
-| 8c | Delete Pantry Item | `DELETE` | `/api/pantry/:itemId` | ✅ |
-| 9 | Create Recipe | `POST` | `/api/recipes` | ✅ |
-| 10 | AI Match Recipes | `GET` | `/api/recipes/match` | ✅ |
-
----
-
-## 🔄 LUỒNG TEST ĐỀ XUẤT (Thứ Tự Chạy)
-
-```
-1. POST /api/users/register           → Đăng ký user mới
-2. POST /api/users/login              → Lấy TOKEN
-3. GET  /api/users/profile            → Xem profile
-4. PUT  /api/users/profile            → Cập nhật profile
-5. GET  /api/categories               → Xem danh mục (cần seed trước)
-6. GET  /api/pantry                   → Xem tủ lạnh (tự tạo rỗng)
-7. POST /api/pantry                   → Thêm nguyên liệu
-8. DELETE /api/pantry/:itemId         → Xóa nguyên liệu
-9. POST /api/recipes                  → Tạo công thức mới
-10. GET /api/recipes/match            → Gọi AI gợi ý món ăn
-```
-
----
-
-## ⚠️ LỖI THƯỜNG GẶP & CÁCH XỬ LÝ
-
-| Lỗi | Nguyên nhân | Cách xử lý |
-|---|---|---|
-| `Cannot connect to server` | Server chưa chạy | `npm run dev` trong `/backend` |
-| `401 Unauthorized` | Thiếu hoặc sai token | Đăng nhập lại, copy token mới |
-| `Categories rỗng []` | Chưa seed | Chạy `node src/seeds/seed.js` |
-| `400 Pantry trống` | User chưa thêm item | POST `/api/pantry` trước |
-| `500 SPOONACULAR_API_KEY` | Thiếu key trong .env | Thêm key vào file `.env` |
-| `Cast to ObjectId failed` | itemId không hợp lệ | Copy đúng `_id` từ GET pantry |
+| Task | Method | URL | Token? |
+|------|--------|-----|--------|
+| 1 | POST | `/api/users/register` | Không |
+| 2 | POST | `/api/users/login` | Không |
+| 3 | POST | `/api/users/oauth` | Không |
+| 4 | GET | `/api/users/profile` | **Có** |
+| 5 | PUT | `/api/users/profile` | **Có** |
+| 6 | GET | `/api/categories` | Không |
+| 7 | — | `node src/seeds/seed.js` | — |
+| 8A | GET | `/api/pantry` | **Có** |
+| 8B | POST | `/api/pantry` | **Có** |
+| 8C | DELETE | `/api/pantry/:itemId` | **Có** |
+| 9 | POST | `/api/recipes` | **Có** |
+| 10 | GET | `/api/recipes/match` | **Có** |
