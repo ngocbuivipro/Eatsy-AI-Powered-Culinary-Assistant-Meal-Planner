@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import LoginBottomSheet from '../components/LoginBottomSheet';
+import LoginBottomSheet from '../components/login/LoginBottomSheet';
 
 const { height } = Dimensions.get('window');
 

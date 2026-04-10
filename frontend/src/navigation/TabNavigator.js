@@ -4,7 +4,9 @@ import { View, Platform } from 'react-native';
 import { House, CookingPot, MessageCircleCode, User } from 'lucide-react-native';
 
 import HomeScreen from '../screens/HomeScreen';
-// Placeholder screens cho các tab khác
+import PantryNavigator from './PantryNavigator';
+
+// Placeholder screens cho các tab còn lại
 const Placeholder = ({ name }) => (
   <View style={{ flex: 1, backgroundColor: '#F8FAF6' }} />
 );
@@ -56,7 +58,7 @@ const TabNavigator = () => {
       />
       <Tab.Screen 
         name="PantryTab" 
-        component={Placeholder} 
+        component={PantryNavigator} 
         options={{
           tabBarIcon: ({ focused }) => <TabBarIcon Icon={CookingPot} focused={focused} />
         }}
