@@ -168,6 +168,8 @@ const sampleCategories = [
   },
 ];
 
+
+
 const samplePantryUser = {
   name: "Seed User",
   email: "seed.user@example.com",
@@ -176,11 +178,9 @@ const samplePantryUser = {
 
 const samplePantry = {
   items: [
-    { spoonacularId: 1123, name: "egg", amount: 12, unit: "piece", imageUrl: "" },
-    { spoonacularId: 14412, name: "spaghetti", amount: 1, unit: "pack", imageUrl: "" },
-    { spoonacularId: 1001, name: "butter", amount: 200, unit: "g", imageUrl: "" },
-    { spoonacularId: 11215, name: "cucumber", amount: 2, unit: "piece", imageUrl: "" },
-    { spoonacularId: 11124, name: "quinoa", amount: 500, unit: "g", imageUrl: "" },
+    { spoonacularId: 1123, name: "egg", amount: 12, unit: "piece", imageUrl: "https://spoonacular.com/cdn/ingredients_100x100/egg.png" },
+    { spoonacularId: 11420420, name: "spaghetti", amount: 1, unit: "pack", imageUrl: "https://spoonacular.com/cdn/ingredients_100x100/spaghetti.jpg" },
+    { spoonacularId: 1001, name: "butter", amount: 200, unit: "g", imageUrl: "https://spoonacular.com/cdn/ingredients_100x100/butter-sliced.jpg" },
   ],
 };
 
@@ -200,6 +200,7 @@ async function seed() {
 
     console.log("Preparing seeded pantry items...");
     await Pantry.create({ userId: user._id, items: samplePantry.items });
+
 
     console.log("Inserting sample recipe documents...");
     await Recipe.create(sampleRecipes);

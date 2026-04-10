@@ -57,3 +57,16 @@ export const removePantryItem = catchAsync(async (req, res) => {
 
   return sendResponse(res, 200, "Xóa nguyên liệu thành công", { pantry: updatedPantry });
 });
+
+// [DELETE] /api/pantry — Làm trống tủ lạnh hoàn toàn
+export const clearPantry = catchAsync(async (req, res, next) => {
+  const pantry = await Pantry.findOne({ userId: req.user._id });
+  if (!pantry) {
+    throw new ApiError(404, "Không tìm thấy pantry của người dùng");
+  }
+
+  pantry.items = [];
+  await pantry.save();
+
+  return sendResponse(res, 200, "Đã dọn sạch tủ lạnh", { pantry });
+});

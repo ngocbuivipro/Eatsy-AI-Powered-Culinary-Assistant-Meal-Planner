@@ -118,11 +118,6 @@ const userSchema = new mongoose.Schema(
 );
 
 // ═══════════════════════════════════════════════
-// 📇 INDEXES — Chỉ mục giúp tìm kiếm nhanh
-// ═══════════════════════════════════════════════
-userSchema.index({ email: 1 });
-
-// ═══════════════════════════════════════════════
 // 🔧 VIRTUALS — Trường ảo, không lưu trong DB
 // ═══════════════════════════════════════════════
 userSchema.virtual("recipes", {

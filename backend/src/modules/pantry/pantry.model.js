@@ -48,16 +48,13 @@ const pantrySchema = new mongoose.Schema(
       required: true,
       unique: true, // Một user chỉ được phép có duy nhất 1 tủ lạnh
     },
-    // Mảng chứa nguyên liệu bên trong tủ, tái sử dụng Sub-document bên trên
+        // Mảng chứa nguyên liệu bên trong tủ, tái sử dụng Sub-document bên trên
     items: [pantryItemSchema],
   },
   {
     timestamps: true,
   }
 );
-
-// Tạo index cho truy xuất nhanh tốc độ cao theo User
-pantrySchema.index({ userId: 1 });
 
 const Pantry = mongoose.model("Pantry", pantrySchema);
 export default Pantry;
