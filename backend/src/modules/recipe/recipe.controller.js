@@ -132,7 +132,7 @@ export const getRandomRecipes = catchAsync(async (req, res, next) => {
 
   // Sử dụng complexSearch để lấy các món phổ biến theo loại bữa ăn
   // Nếu không có type, nó sẽ lấy các món phổ biến ngẫu nhiên
-  const url = `https://api.spoonacular.com/recipes/complexSearch?type=${type || ""}&sort=popularity&number=10&addRecipeInformation=true&apiKey=${apiKey}`;
+  const url = `https://api.spoonacular.com/recipes/complexSearch?type=${type || ""}&sort=popularity&number=20&addRecipeInformation=true&fillIngredients=true&apiKey=${apiKey}`;
 
   const response = await fetch(url);
   

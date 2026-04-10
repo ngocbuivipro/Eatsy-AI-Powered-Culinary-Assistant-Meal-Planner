@@ -39,7 +39,7 @@ const GreetingScreen = () => {
         useNativeDriver: true,
       }),
 
-      // 2. VẼ toàn bộ "hello" trong 1 animation liên tục — chậm và mượt
+      // 2. VẼ toàn bộ "hello" trong 1 animation liên tục
       Animated.timing(drawProgress, {
         toValue: 1,
         duration: 3500,
@@ -47,33 +47,33 @@ const GreetingScreen = () => {
         useNativeDriver: true,
       }),
 
-      // 3. Giữ lại để ngắm
-      Animated.delay(900),
+      // 3. 200ms sau khi hello xong
+      Animated.delay(200),
 
-      // 4. Chữ hello mờ đi
+      // 4. Hello biến mất HOÀN TOÀN
       Animated.timing(svgOpacity, {
         toValue: 0,
-        duration: 700,
+        duration: 600,
         useNativeDriver: true,
       }),
 
-      // 5. Tên user nổi lên
+      // 5. SAU ĐÓ Welcome mới nổi lên (sequential, không overlap)
       Animated.parallel([
         Animated.timing(nameOpacity, {
           toValue: 1,
-          duration: 1000,
+          duration: 700,
           useNativeDriver: true,
         }),
         Animated.timing(nameTranslateY, {
           toValue: 0,
-          duration: 1000,
+          duration: 700,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
       ]),
 
-      // 6. Giữ tên lại
-      Animated.delay(1400),
+      // 6. Giữ tên lâu hơn (+1 giây)
+      Animated.delay(2400),
 
       // 7. Mờ dần toàn màn hình vào Home
       Animated.timing(containerOpacity, {
