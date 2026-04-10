@@ -1,41 +1,79 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { View, Platform } from 'react-native';
+import { House, CookingPot, MessageCircleCode, User } from 'lucide-react-native';
+
 import HomeScreen from '../screens/HomeScreen';
-import PantryScreen from '../screens/PantryScreen';
-import ChatScreen from '../screens/ChatScreen';
-import ProfileScreen from '../screens/ProfileScreen';
+// Placeholder screens cho các tab khác
+const Placeholder = ({ name }) => (
+  <View style={{ flex: 1, backgroundColor: '#F8FAF6' }} />
+);
 
 const Tab = createBottomTabNavigator();
+
+const TabBarIcon = ({ Icon, focused, size = 22 }) => {
+  return (
+    <View style={{
+      width: 50,
+      height: 50,
+      borderRadius: 18,
+      backgroundColor: focused ? '#EAFED9' : 'transparent',
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}>
+      <Icon 
+        size={size} 
+        color={focused ? '#2B352F' : '#6E7872'} 
+        strokeWidth={focused ? 2.5 : 2}
+      />
+    </View>
+  );
+};
 
 const TabNavigator = () => {
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#4A5D4E',
-        tabBarInactiveTintColor: 'gray',
+        tabBarShowLabel: false,
         tabBarStyle: {
-          height: 65,
-          paddingBottom: 10,
-          paddingTop: 10,
+          backgroundColor: '#FDFFFC',
+          borderTopWidth: 1,
+          borderTopColor: '#F0F4F0',
+          height: Platform.OS === 'ios' ? 90 : 70,
+          paddingTop: 20, // Đưa icon lên trên một chút để cân bằng với phần padding bottom của iOS
+          elevation: 0,
+          shadowOpacity: 0,
         },
       }}
     >
       <Tab.Screen 
-        name="Home" 
+        name="HomeTab" 
         component={HomeScreen} 
+        options={{
+          tabBarIcon: ({ focused }) => <TabBarIcon Icon={House} focused={focused} />
+        }}
       />
       <Tab.Screen 
-        name="Pantry" 
-        component={PantryScreen} 
+        name="PantryTab" 
+        component={Placeholder} 
+        options={{
+          tabBarIcon: ({ focused }) => <TabBarIcon Icon={CookingPot} focused={focused} />
+        }}
       />
       <Tab.Screen 
-        name="AI Chat" 
-        component={ChatScreen} 
+        name="AIChatTab" 
+        component={Placeholder} 
+        options={{
+          tabBarIcon: ({ focused }) => <TabBarIcon Icon={MessageCircleCode} focused={focused} />
+        }}
       />
       <Tab.Screen 
-        name="Profile" 
-        component={ProfileScreen} 
+        name="ProfileTab" 
+        component={Placeholder} 
+        options={{
+          tabBarIcon: ({ focused }) => <TabBarIcon Icon={User} focused={focused} />
+        }}
       />
     </Tab.Navigator>
   );
