@@ -19,17 +19,16 @@ import userRoutes from "./modules/user/user.route.js";
 import recipeRoutes from "./modules/recipe/recipe.route.js";
 import categoryRoutes from "./modules/category/category.route.js";
 import pantryRoutes from "./modules/pantry/pantry.route.js";
-
-// Test route
-app.get("/", (req, res) => {
-  res.send("Eatsy Backend is running 🚀");
-});
+import aiAssistantRoutes from "./modules/ai-assistant/ai-assistant.route.js";
+import ingredientRoutes from "./modules/ingredient/ingredient.route.js";
 
 // Các API nghiệp vụ
 app.use("/api/users", userRoutes);
 app.use("/api/recipes", recipeRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/pantry", pantryRoutes);
+app.use("/api/ai-assistant", aiAssistantRoutes);
+app.use("/api/ingredients", ingredientRoutes);
 
 // BẮT BUỘC ĐỂ Ở CUỐI CÙNG LÀ BỘ ĐÔI NÀY!
 app.use(notFound); // Chặn các route không tồn tại (404)
