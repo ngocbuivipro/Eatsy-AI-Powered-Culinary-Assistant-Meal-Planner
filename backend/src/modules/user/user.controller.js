@@ -5,24 +5,24 @@ import { ApiError } from "../../utils/ApiError.util.js";
 import { generateToken } from "../../utils/jwt.util.js";
 import { hashPassword, comparePassword } from "../../utils/password.util.js";
 
-// [Task 1] Đăng ký truyền thống
+// [Task 1] Traditional Registration
 export const registerUser = catchAsync(async (req, res, next) => {
   const { name, email, password } = req.body;
 
   if (!email || !password || !name) {
-    throw new ApiError(400, "Vui lòng nhập đầy đủ tên, email và mật khẩu");
+    throw new ApiError(400, "Please provide name, email, and password");
   }
 
-  // Kiểm tra email đã tồn tại hay chưa
+  // Check if email already exists
   const userExists = await User.findOne({ email });
   if (userExists) {
-    throw new ApiError(400, "Email này đã được đăng ký, vui lòng dùng email khác");
+    throw new ApiError(400, "Email already registered, please use another one");
   }
 
-  // Mã hóa mật khẩu
+  // Encrypt password
   const hashedPassword = await hashPassword(password);
 
-  // Tạo tài khoản
+  // Create user
   const user = await User.create({
     name,
     email,
@@ -30,65 +30,60 @@ export const registerUser = catchAsync(async (req, res, next) => {
     authProvider: "local",
   });
 
-  // Tự động cấp Token giúp văng thẳng vào bên trong màn hình Home
+  // Auto-generate token to log in immediately
   const token = generateToken({ id: user._id });
 
-  // Trả về Frontend (ko trả ra trường password)
+  // Hide password from response
   user.password = undefined;
 
-  return sendResponse(res, 201, "Đăng ký tải khoản thành công", { user, token });
+  return sendResponse(res, 201, "Registration successful", { user, token });
 });
 
-// [Task 2] Đăng nhập truyền thống
+// [Task 2] Traditional Login
 export const loginUser = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    throw new ApiError(400, "Vui lòng nhập email và mật khẩu");
+    throw new ApiError(400, "Please provide email and password");
   }
 
-  // Tìm user và phải nạy thêm móc .select("+password") vì Model mặc định giấu nó đi
+  // Find user and select password which is hidden by default
   const user = await User.findOne({ email }).select("+password");
 
-  // So pass
+  // Compare password
   if (!user || !(await comparePassword(password, user.password))) {
-    throw new ApiError(401, "Sai email hoặc tài khoản, vui lòng thử lại");
+    throw new ApiError(401, "Invalid email or password, please try again");
   }
 
-  // Cấp Token
+  // Generate token
   const token = generateToken({ id: user._id });
 
-  // Giấu lại pass trước khi gửi về màn hình
+  // Hide password before sending response
   user.password = undefined; 
 
-  return sendResponse(res, 200, "Đăng nhập thành công", { user, token });
+  return sendResponse(res, 200, "Login successful", { user, token });
 });
 
-// [Task 3] Đăng nhập OAuth (Google/Apple) - Tiền trạm
+// [Task 3] OAuth Login (Google/Apple)
 export const oauthLogin = catchAsync(async (req, res, next) => {
   const { email, name, providerId, authProvider, avatarUrl } = req.body;
 
-  // 1. Kiểm tra thiếu dữ liệu đầu vào không
   if (!email || !providerId || !authProvider) {
-    throw new ApiError(400, "Thiếu thông tin cần thiết từ Google/Apple");
+    throw new ApiError(400, "Missing required information from Google/Apple");
   }
 
-  // 2. Tra cứu khách hàng cũ
   let user = await User.findOne({ email });
 
   if (user) {
-    // Nếu trước đây User đăng ký bằng Email/Password, nay xài Google -> Cập nhật Google ID vào hồ sơ cũ
     if (authProvider === "google" && !user.googleId) {
       user.googleId = providerId;
       await user.save();
     }
-    // Tương tự cho Apple
     if (authProvider === "apple" && !user.appleId) {
       user.appleId = providerId;
       await user.save();
     }
   } else {
-    // 3. Khách hàng mới tinh -> Đăng ký tự động không cần Mật khẩu
     user = await User.create({
       email: email,
       name: name,
@@ -99,40 +94,37 @@ export const oauthLogin = catchAsync(async (req, res, next) => {
     });
   }
 
-  // 4. Sinh JWT Token để cấp visa vào các App khác
-  // (ID nằm trong thư mục user._id của Mongo)
   const token = generateToken({ id: user._id });
 
-  // 5. Trả về kết quả chuyên nghiệp
-  return sendResponse(res, 200, "Đăng nhập OAuth thành công!", { 
+  return sendResponse(res, 200, "OAuth Login successful", { 
     user, 
     token 
   });
 });
 
-// [Task 4] Lấy thông tin hồ sơ người dùng hiện tại
+// [Task 4] Get Current User Profile
 export const getCurrentUserProfile = catchAsync(async (req, res, next) => {
   const user = req.user;
 
   if (!user) {
-    throw new ApiError(401, "Người dùng chưa xác thực");
+    throw new ApiError(401, "User not authenticated");
   }
 
-  return sendResponse(res, 200, "Lấy thông tin hồ sơ thành công", { user });
+  return sendResponse(res, 200, "Profile retrieved successfully", { user });
 });
 
-// [Task 5] Cập nhật hồ sơ người dùng hiện tại
+// [Task 5] Update Current User Profile
 export const updateCurrentUserProfile = catchAsync(async (req, res, next) => {
   const userId = req.user?._id;
 
   if (!userId) {
-    throw new ApiError(401, "Người dùng chưa xác thực");
+    throw new ApiError(401, "User not authenticated");
   }
 
   const user = await User.findById(userId);
 
   if (!user) {
-    throw new ApiError(404, "Không tìm thấy người dùng");
+    throw new ApiError(404, "User not found");
   }
 
   const allowedFields = ["name", "avatarUrl", "dietaryPreferences", "healthGoals"];
@@ -143,19 +135,8 @@ export const updateCurrentUserProfile = catchAsync(async (req, res, next) => {
     }
   });
 
-  // Không cho phép cập nhật các trường nhạy cảm bằng request body trực tiếp
-  // (các trường này nằm trong model nhưng không được cho phép cập nhật ở đây)
-  const blockedFields = ["_id", "authProvider", "googleId", "appleId", "savedRecipes", "isActive", "password"];
-
-  blockedFields.forEach((field) => {
-    if (req.body[field] !== undefined) {
-      // chỉ bỏ qua chứ không throw;
-    }
-  });
-
   const updatedUser = await user.save();
-
   updatedUser.password = undefined;
 
-  return sendResponse(res, 200, "Cập nhật hồ sơ thành công", { user: updatedUser });
+  return sendResponse(res, 200, "Profile updated successfully", { user: updatedUser });
 });

@@ -32,7 +32,10 @@ const useAuthStore = create((set) => ({
   user: null,
   token: null,
   isAuthenticated: false,
+  isGreetingFinished: false, // Thêm state quản lý màn hình chào
   isLoading: true,
+
+  finishGreeting: () => set({ isGreetingFinished: true }),
 
   init: async () => {
     try {
@@ -43,7 +46,8 @@ const useAuthStore = create((set) => ({
         set({ 
           token, 
           user: JSON.parse(userStr), 
-          isAuthenticated: true 
+          isAuthenticated: true,
+          isGreetingFinished: true // Người cũ vào thẳng luôn ko chào
         });
       }
     } catch (error) {
@@ -61,9 +65,13 @@ const useAuthStore = create((set) => ({
       await safeStorage.setItem('userToken', token);
       await safeStorage.setItem('userData', JSON.stringify(user));
 
-      set({ user, token, isAuthenticated: true });
+      // Reset greeting cho người vừa đăng nhập xong
+      set({ user, token, isAuthenticated: true, isGreetingFinished: false });
       return { success: true };
     } catch (error) {
+      if (!error.response) {
+        return { success: false, message: 'Cannot connect to Server. Is the Backend running?' };
+      }
       const message = error.response?.data?.message || 'Login failed';
       return { success: false, message };
     }
@@ -71,15 +79,18 @@ const useAuthStore = create((set) => ({
 
   register: async (name, email, password) => {
     try {
-      const response = await apiClient.post('/users', { name, email, password });
+      const response = await apiClient.post('/users/register', { name, email, password });
       const { user, token } = response.data.data;
 
       await safeStorage.setItem('userToken', token);
       await safeStorage.setItem('userData', JSON.stringify(user));
 
-      set({ user, token, isAuthenticated: true });
+      set({ user, token, isAuthenticated: true, isGreetingFinished: false });
       return { success: true };
     } catch (error) {
+      if (!error.response) {
+        return { success: false, message: 'Cannot connect to Server. Is the Backend running?' };
+      }
       const message = error.response?.data?.message || 'Registration failed';
       return { success: false, message };
     }
