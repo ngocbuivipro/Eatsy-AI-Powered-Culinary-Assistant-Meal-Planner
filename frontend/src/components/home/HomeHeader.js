@@ -1,8 +1,11 @@
+// [frontend/src/components/home/HomeHeader.js]
 import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import useAuthStore from '../../store/useAuthStore';
 import { getTimeGreeting } from '../../utils/timeHelper';
+import UserAvatar from '../common/UserAvatar';
+import { COLORS } from '../../constants/Colors';
 
 const HomeHeader = () => {
   const { user } = useAuthStore();
@@ -24,7 +27,7 @@ const HomeHeader = () => {
       paddingTop: insets.top + 16,
       paddingBottom: 24,
       paddingHorizontal: 24,
-      backgroundColor: '#F8FAF6',
+      backgroundColor: COLORS.background,
     }}>
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         {/* Greeting Text */}
@@ -33,7 +36,7 @@ const HomeHeader = () => {
             fontSize: 11,
             fontWeight: '700',
             letterSpacing: 1.8,
-            color: '#57615B',
+            color: COLORS.textGray,
             opacity: 0.8,
             textTransform: 'uppercase',
           }}>
@@ -44,7 +47,7 @@ const HomeHeader = () => {
             fontWeight: '800',
             letterSpacing: -0.8,
             lineHeight: 36,
-            color: '#2B352F',
+            color: COLORS.text,
             marginTop: 6,
           }}>
             What are we cooking{'\n'}{mealContext}
@@ -52,24 +55,7 @@ const HomeHeader = () => {
         </View>
 
         {/* User Avatar */}
-        <TouchableOpacity style={{
-          width: 44,
-          height: 44,
-          borderRadius: 14,
-          backgroundColor: '#E2EAE3',
-          overflow: 'hidden',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginTop: 2,
-        }}>
-          {user?.avatar ? (
-            <Image source={{ uri: user.avatar }} style={{ width: '100%', height: '100%' }} />
-          ) : (
-            <Text style={{ fontSize: 16, fontWeight: '700', color: '#526347' }}>
-              {firstName.charAt(0).toUpperCase()}
-            </Text>
-          )}
-        </TouchableOpacity>
+        <UserAvatar size={44} />
       </View>
     </View>
   );

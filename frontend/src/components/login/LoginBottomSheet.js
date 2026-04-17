@@ -1,8 +1,11 @@
+// [frontend/src/components/login/LoginBottomSheet.js]
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Modal, StyleSheet, Pressable, Animated, Dimensions, Easing } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { Ionicons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { COLORS } from '../../constants/Colors';
+import { STRINGS } from '../../constants/Strings';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -49,7 +52,6 @@ const LoginBottomSheet = ({ isVisible, onClose }) => {
 
   const handleEmailLogin = () => {
     onClose();
-    // Delay navigation slightly to allow sheet to animate down
     setTimeout(() => {
       navigation.navigate('Login');
     }, 300);
@@ -71,39 +73,39 @@ const LoginBottomSheet = ({ isVisible, onClose }) => {
         </Animated.View>
 
         <Animated.View 
-          style={{ transform: [{ translateY: slideAnim }] }}
-          className="w-full bg-white rounded-t-[40px] pt-8 pb-12 px-8 shadow-2xl"
+          style={[{ transform: [{ translateY: slideAnim }], backgroundColor: COLORS.white }]}
+          className="w-full rounded-t-[40px] pt-8 pb-12 px-8 shadow-2xl"
         >
-          <View className="w-12 h-1.5 bg-[#e2eae3] rounded-full self-center mb-6" />
+          <View style={{ backgroundColor: COLORS.border }} className="w-12 h-1.5 rounded-full self-center mb-6" />
 
-          <Text className="text-[#2B352F] text-3xl font-bold text-center mb-8">Log in</Text>
+          <Text style={{ color: COLORS.text }} className="text-3xl font-bold text-center mb-8">{STRINGS.AUTH.LOGIN_BUTTON}</Text>
 
           <View className="w-full">
             <LoginButton 
               icon={<Ionicons name="logo-apple" size={24} color="white" />}
               label="Sign in with Apple"
-              bgClass="bg-[#0c0f0d]"
+              bgStyle={{ backgroundColor: '#0c0f0d' }}
               textColor="text-white"
             />
             <LoginButton 
               icon={<Ionicons name="logo-google" size={24} color="#EA4335" />}
               label="Sign in with Google"
-              bgClass="bg-white"
-              borderClass="border border-[#aab5ad4c]"
-              textColor="text-[#2B352F]"
+              bgStyle={{ backgroundColor: COLORS.white, borderColor: COLORS.border, borderWidth: 1 }}
+              textColor={`text-[${COLORS.text}]`}
+              labelStyle={{ color: COLORS.text }}
             />
             <LoginButton 
-              icon={<MaterialCommunityIcons name="email-outline" size={24} color="#2B352F" />}
+              icon={<MaterialCommunityIcons name="email-outline" size={24} color={COLORS.text} />}
               label="Continue with Email"
-              bgClass="bg-white"
-              borderClass="border border-[#aab5ad4c]"
-              textColor="text-[#2B352F]"
+              bgStyle={{ backgroundColor: COLORS.white, borderColor: COLORS.border, borderWidth: 1 }}
+              textColor={`text-[${COLORS.text}]`}
+              labelStyle={{ color: COLORS.text }}
               onPress={handleEmailLogin}
             />
           </View>
 
           <View className="mt-8 items-center">
-            <Text className="text-[#57615B] opacity-60 text-xs text-center leading-5">
+            <Text style={{ color: COLORS.textGray, opacity: 0.6 }} className="text-xs text-center leading-5">
               By continuing, you agree to Eatsy's{"\n"}
               Terms of Service and Privacy Policy.
             </Text>
@@ -114,16 +116,17 @@ const LoginBottomSheet = ({ isVisible, onClose }) => {
   );
 };
 
-const LoginButton = ({ icon, label, bgClass, borderClass = '', textColor, onPress }) => (
+const LoginButton = ({ icon, label, bgStyle, labelStyle, onPress }) => (
   <TouchableOpacity 
-    className={`${bgClass} ${borderClass} flex-row items-center justify-center px-8 py-4 rounded-2xl shadow-sm mb-4`}
+    style={[bgStyle]}
+    className={`flex-row items-center justify-center px-8 py-4 rounded-2xl shadow-sm mb-4`}
     activeOpacity={0.7}
     onPress={onPress}
   >
     <View className="absolute left-6">
       {icon}
     </View>
-    <Text className={`${textColor} text-base font-semibold`}>{label}</Text>
+    <Text style={[labelStyle]} className={`text-base font-semibold`}>{label}</Text>
   </TouchableOpacity>
 );
 

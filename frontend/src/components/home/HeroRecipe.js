@@ -1,6 +1,9 @@
+// [frontend/src/components/home/HeroRecipe.js]
 import React, { useEffect, useRef } from 'react';
 import { View, Text, Image, TouchableOpacity, Animated } from 'react-native';
 import { getHighResImage } from '../../utils/imageHelper';
+import { COLORS } from '../../constants/Colors';
+import { STRINGS } from '../../constants/Strings';
 
 const getDifficulty = (r) => {
   if (!r?.readyInMinutes) return 'Easy';
@@ -35,7 +38,7 @@ const HeroRecipe = ({ recipe, onLetsCook, onSomethingElse }) => {
 
   if (!recipe) return null;
 
-  const highResImage = getHighResImage(recipe.image);
+  const highResImage = getHighResImage(recipe.image || recipe.imageUrl);
   
   // Spoonacular search results might use 'missedIngredients' + 'usedIngredients' or 'extendedIngredients'
   const ingredientsCount = (recipe.extendedIngredients?.length) || 
@@ -52,8 +55,8 @@ const HeroRecipe = ({ recipe, onLetsCook, onSomethingElse }) => {
           borderRadius: 28,
           overflow: 'hidden',
           aspectRatio: 1 / 1.05,
-          backgroundColor: '#E9F0E9',
-          shadowColor: '#526347',
+          backgroundColor: COLORS.secondary,
+          shadowColor: COLORS.primary,
           shadowOffset: { width: 0, height: 16 },
           shadowOpacity: 0.18,
           shadowRadius: 32,
@@ -81,8 +84,8 @@ const HeroRecipe = ({ recipe, onLetsCook, onSomethingElse }) => {
             borderWidth: 1,
             borderColor: 'rgba(255,255,255,0.3)',
           }}>
-            <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: '#526347', marginRight: 7 }} />
-            <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.5, color: '#2B352F' }}>
+            <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: COLORS.primary, marginRight: 7 }} />
+            <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.5, color: COLORS.text }}>
               AI SELECTED
             </Text>
           </View>
@@ -93,7 +96,7 @@ const HeroRecipe = ({ recipe, onLetsCook, onSomethingElse }) => {
           <Text style={{
             fontSize: 17,
             fontWeight: '500',
-            color: '#57615B',
+            color: COLORS.textGray,
             opacity: 0.7,
             marginBottom: 6,
           }}>
@@ -104,7 +107,7 @@ const HeroRecipe = ({ recipe, onLetsCook, onSomethingElse }) => {
             fontWeight: '800',
             letterSpacing: -1.2,
             lineHeight: 36,
-            color: '#2B352F',
+            color: COLORS.text,
           }} numberOfLines={2}>
             {recipe.title}
           </Text>
@@ -118,28 +121,28 @@ const HeroRecipe = ({ recipe, onLetsCook, onSomethingElse }) => {
           marginBottom: 28,
         }}>
           <View>
-            <Text style={{ fontSize: 9, fontWeight: '700', letterSpacing: 1, color: '#57615B', textTransform: 'uppercase', opacity: 0.6, marginBottom: 2 }}>
-              Prep
+            <Text style={{ fontSize: 9, fontWeight: '700', letterSpacing: 1, color: COLORS.textGray, textTransform: 'uppercase', opacity: 0.6, marginBottom: 2 }}>
+              {STRINGS.RECIPE.PREP_TIME}
             </Text>
-            <Text style={{ fontSize: 15, fontWeight: '600', color: '#2B352F' }}>
-              {recipe.readyInMinutes} min
+            <Text style={{ fontSize: 15, fontWeight: '600', color: COLORS.text }}>
+              {recipe.readyInMinutes || recipe.prepTime} min
             </Text>
           </View>
-          <View style={{ width: 1, backgroundColor: '#E0EBE0' }} />
+          <View style={{ width: 1, backgroundColor: COLORS.border }} />
           <View>
-            <Text style={{ fontSize: 9, fontWeight: '700', letterSpacing: 1, color: '#57615B', textTransform: 'uppercase', opacity: 0.6, marginBottom: 2 }}>
-              Difficulty
+            <Text style={{ fontSize: 9, fontWeight: '700', letterSpacing: 1, color: COLORS.textGray, textTransform: 'uppercase', opacity: 0.6, marginBottom: 2 }}>
+              {STRINGS.RECIPE.DIFFICULTY}
             </Text>
-            <Text style={{ fontSize: 15, fontWeight: '600', color: '#2B352F' }}>
+            <Text style={{ fontSize: 15, fontWeight: '600', color: COLORS.text }}>
               {getDifficulty(recipe)}
             </Text>
           </View>
-          <View style={{ width: 1, backgroundColor: '#E0EBE0' }} />
+          <View style={{ width: 1, backgroundColor: COLORS.border }} />
           <View>
-            <Text style={{ fontSize: 9, fontWeight: '700', letterSpacing: 1, color: '#57615B', textTransform: 'uppercase', opacity: 0.6, marginBottom: 2 }}>
-              Ingredients
+            <Text style={{ fontSize: 9, fontWeight: '700', letterSpacing: 1, color: COLORS.textGray, textTransform: 'uppercase', opacity: 0.6, marginBottom: 2 }}>
+              {STRINGS.RECIPE.INGREDIENTS}
             </Text>
-            <Text style={{ fontSize: 15, fontWeight: '600', color: '#2B352F' }}>
+            <Text style={{ fontSize: 15, fontWeight: '600', color: COLORS.text }}>
               {ingredientsCount > 0 ? `${ingredientsCount} items` : '—'}
             </Text>
           </View>
@@ -151,18 +154,18 @@ const HeroRecipe = ({ recipe, onLetsCook, onSomethingElse }) => {
         <TouchableOpacity
           onPress={() => onLetsCook(recipe)}
           style={{
-            backgroundColor: '#526347',
+            backgroundColor: COLORS.primary,
             borderRadius: 16,
             paddingVertical: 20,
             alignItems: 'center',
-            shadowColor: '#526347',
+            shadowColor: COLORS.primary,
             shadowOffset: { width: 0, height: 8 },
             shadowOpacity: 0.3,
             shadowRadius: 16,
             elevation: 8,
           }}
         >
-          <Text style={{ fontSize: 17, fontWeight: '700', color: '#EAFED9', letterSpacing: -0.2 }}>
+          <Text style={{ fontSize: 17, fontWeight: '700', color: COLORS.secondary, letterSpacing: -0.2 }}>
             Let's Cook  🍴
           </Text>
         </TouchableOpacity>
@@ -170,13 +173,13 @@ const HeroRecipe = ({ recipe, onLetsCook, onSomethingElse }) => {
         <TouchableOpacity
           onPress={onSomethingElse}
           style={{
-            backgroundColor: '#D5E9C4',
+            backgroundColor: COLORS.accent,
             borderRadius: 16,
             paddingVertical: 20,
             alignItems: 'center',
           }}
         >
-          <Text style={{ fontSize: 17, fontWeight: '700', color: '#46573B', letterSpacing: -0.2 }}>
+          <Text style={{ fontSize: 17, fontWeight: '700', color: COLORS.primary, letterSpacing: -0.2 }}>
             Something else?
           </Text>
         </TouchableOpacity>

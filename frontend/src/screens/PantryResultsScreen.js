@@ -47,8 +47,7 @@ const PantryResultsScreen = ({ route, navigation }) => {
         activeOpacity={0.9}
         style={styles.card}
         onPress={() => {
-            // Sẽ dẫn tới màn RecipeDetails sau
-            console.log('Pressed recipe:', item.id);
+            navigation.navigate('RecipeDetails', { recipeId: item.id });
         }}
       >
         <Image 

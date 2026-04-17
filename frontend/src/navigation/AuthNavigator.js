@@ -1,8 +1,10 @@
+// [frontend/src/navigation/AuthNavigator.js]
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
+import { COLORS } from '../constants/Colors';
 
 const Stack = createNativeStackNavigator();
 
@@ -12,7 +14,7 @@ const AuthNavigator = () => {
       initialRouteName="Welcome"
       screenOptions={{ 
         headerShown: false,
-        contentStyle: { backgroundColor: '#ffffff' },
+        contentStyle: { backgroundColor: COLORS.white },
       }}
     >
       <Stack.Screen name="Welcome" component={WelcomeScreen} />

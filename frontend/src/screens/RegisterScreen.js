@@ -1,8 +1,11 @@
+// [frontend/src/screens/RegisterScreen.js]
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, SafeAreaView, StyleSheet, Dimensions, ScrollView, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import useAuthStore from '../store/useAuthStore';
+import { COLORS } from '../constants/Colors';
+import { STRINGS } from '../constants/Strings';
 
 const { height } = Dimensions.get('window');
 
@@ -20,7 +23,7 @@ const RegisterScreen = () => {
     Keyboard.dismiss();
 
     if (!name || !email || !password || !confirmPassword) {
-      Alert.alert('Notice', 'Please fill in all fields');
+      Alert.alert(STRINGS.AUTH.VALIDATION_ERROR, 'Please fill in all fields');
       return;
     }
 
@@ -40,11 +43,11 @@ const RegisterScreen = () => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: COLORS.white }]}>
         {/* Background Decorative Blobs */}
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          <View className="absolute -top-24 -right-24 w-64 h-64 bg-[#8fa38210] rounded-full" />
-          <View className="absolute -left-24 bottom-[30%] w-80 h-80 bg-[#a3828f08] rounded-full" />
+          <View style={{ backgroundColor: COLORS.primary + '10' }} className="absolute -top-24 -right-24 w-64 h-64 rounded-full" />
+          <View style={{ backgroundColor: COLORS.secondary + '08' }} className="absolute -left-24 bottom-[30%] w-80 h-80 rounded-full" />
         </View>
 
         <ScrollView 
@@ -55,38 +58,39 @@ const RegisterScreen = () => {
           {/* Back Button */}
           <TouchableOpacity 
             onPress={() => navigation.goBack()}
-            className="w-12 h-12 bg-white rounded-full items-center justify-center shadow-sm border border-gray-100 mb-8"
+            style={{ backgroundColor: COLORS.white, borderColor: COLORS.border }}
+            className="w-12 h-12 rounded-full items-center justify-center shadow-sm border mb-8"
           >
-            <Ionicons name="chevron-back" size={24} color="#2B352F" />
+            <Ionicons name="chevron-back" size={24} color={COLORS.text} />
           </TouchableOpacity>
 
           {/* Header */}
           <View className="mb-10">
-            <Text className="text-[#2B352F] text-4xl font-extrabold mb-2">Create Account</Text>
-            <Text className="text-[#717171] text-lg font-medium">Join Eatsy to start cooking</Text>
+            <Text style={{ color: COLORS.text }} className="text-4xl font-extrabold mb-2">Create Account</Text>
+            <Text style={{ color: COLORS.textGray }} className="text-lg font-medium">Join Eatsy to start cooking</Text>
           </View>
 
           {/* Form */}
           <View>
             <View>
-              <Text className="text-[#2B352F] font-semibold mb-3 ml-1">Full Name</Text>
+              <Text style={{ color: COLORS.text }} className="font-semibold mb-3 ml-1">Full Name</Text>
               <TextInput
-                style={{ textAlignVertical: 'center' }}
-                className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-2xl h-16 px-6 text-[#2B352F] text-base"
+                style={{ textAlignVertical: 'center', backgroundColor: COLORS.inputBg, borderColor: COLORS.border, color: COLORS.text }}
+                className="border rounded-2xl h-16 px-6 text-base"
                 placeholder="John Doe"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={COLORS.placeholder}
                 value={name}
                 onChangeText={setName}
               />
             </View>
 
             <View className="mt-6">
-              <Text className="text-[#2B352F] font-semibold mb-3 ml-1">Email Address</Text>
+              <Text style={{ color: COLORS.text }} className="font-semibold mb-3 ml-1">{STRINGS.AUTH.EMAIL_LABEL}</Text>
               <TextInput
-                style={{ textAlignVertical: 'center' }}
-                className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-2xl h-16 px-6 text-[#2B352F] text-base"
-                placeholder="example@mail.com"
-                placeholderTextColor="#9CA3AF"
+                style={{ textAlignVertical: 'center', backgroundColor: COLORS.inputBg, borderColor: COLORS.border, color: COLORS.text }}
+                className="border rounded-2xl h-16 px-6 text-base"
+                placeholder={STRINGS.AUTH.EMAIL_PLACEHOLDER}
+                placeholderTextColor={COLORS.placeholder}
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
@@ -95,12 +99,12 @@ const RegisterScreen = () => {
             </View>
 
             <View className="mt-6">
-              <Text className="text-[#2B352F] font-semibold mb-3 ml-1">Password</Text>
+              <Text style={{ color: COLORS.text }} className="font-semibold mb-3 ml-1">{STRINGS.AUTH.PASSWORD_LABEL}</Text>
               <TextInput
-                style={{ textAlignVertical: 'center' }}
-                className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-2xl h-16 px-6 text-[#2B352F] text-base"
-                placeholder="********"
-                placeholderTextColor="#9CA3AF"
+                style={{ textAlignVertical: 'center', backgroundColor: COLORS.inputBg, borderColor: COLORS.border, color: COLORS.text }}
+                className="border rounded-2xl h-16 px-6 text-base"
+                placeholder={STRINGS.AUTH.PASSWORD_PLACEHOLDER}
+                placeholderTextColor={COLORS.placeholder}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
@@ -108,12 +112,12 @@ const RegisterScreen = () => {
             </View>
 
             <View className="mt-6">
-              <Text className="text-[#2B352F] font-semibold mb-3 ml-1">Confirm Password</Text>
+              <Text style={{ color: COLORS.text }} className="font-semibold mb-3 ml-1">Confirm Password</Text>
               <TextInput
-                style={{ textAlignVertical: 'center' }}
-                className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-2xl h-16 px-6 text-[#2B352F] text-base"
-                placeholder="********"
-                placeholderTextColor="#9CA3AF"
+                style={{ textAlignVertical: 'center', backgroundColor: COLORS.inputBg, borderColor: COLORS.border, color: COLORS.text }}
+                className="border rounded-2xl h-16 px-6 text-base"
+                placeholder={STRINGS.AUTH.PASSWORD_PLACEHOLDER}
+                placeholderTextColor={COLORS.placeholder}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry
@@ -125,21 +129,22 @@ const RegisterScreen = () => {
           <TouchableOpacity 
             onPress={handleRegister}
             disabled={loading}
-            className="bg-[#8FA382] rounded-3xl py-5 mt-10 flex-row justify-center items-center shadow-lg shadow-[#8fa38233]"
+            style={{ backgroundColor: COLORS.primary, shadowColor: COLORS.primary }}
+            className="rounded-3xl py-5 mt-10 flex-row justify-center items-center shadow-lg"
             activeOpacity={0.8}
           >
             {loading ? (
-              <ActivityIndicator color="white" />
+              <ActivityIndicator color={COLORS.white} />
             ) : (
-              <Text className="text-white font-bold text-xl">Register</Text>
+              <Text className="text-white font-bold text-xl">{STRINGS.AUTH.REGISTER_LINK}</Text>
             )}
           </TouchableOpacity>
 
           {/* Footer */}
           <View className="flex-row justify-center mt-10">
-            <Text className="text-[#717171] text-base">Already have an account? </Text>
+            <Text style={{ color: COLORS.textGray }} className="text-base">{STRINGS.AUTH.DONT_HAVE_ACCOUNT.replace('Don\'t', 'Already')} </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-              <Text className="text-[#8FA382] font-bold text-base">Log in</Text>
+              <Text style={{ color: COLORS.primary }} className="font-bold text-base">{STRINGS.AUTH.LOGIN_BUTTON}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -151,7 +156,6 @@ const RegisterScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
   },
 });
 
