@@ -90,7 +90,14 @@ const userSchema = new mongoose.Schema(
       },
     },
 
-    // --- Công thức đã lưu (bookmark) ---
+    // --- Measurement preference ---
+    measurementSystem: {
+      type: String,
+      enum: ["metric", "imperial"],
+      default: "metric",
+    },
+
+    // --- Saved recipes (bookmarks) ---
     savedRecipes: [
       {
         recipeId: {
