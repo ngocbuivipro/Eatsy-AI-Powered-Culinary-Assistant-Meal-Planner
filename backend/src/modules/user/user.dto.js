@@ -18,6 +18,7 @@ export const UserResponseDTO = (user) => {
     measurementSystem: user.measurementSystem,
     savedRecipes: user.savedRecipes,
     isActive: user.isActive,
+    hasCompletedOnboarding: user.hasCompletedOnboarding,
     createdAt: user.createdAt,
   };
 };

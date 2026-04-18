@@ -8,12 +8,23 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: "#526347",      // Deep Olive
-        secondary: "#D5E9C4",    // Light Moss
+        // Brand Palette
+        primary:    "#526347",   // Deep Olive
+        secondary:  "#D5E9C4",   // Light Moss
         background: "#F8FAF6",   // Ivory White
-        accent: "#EAFED9",       // Pale Leaf
-        "eatsy-text": "#2B352F", // Deep Forest
-        "eatsy-gray": "#57615B"  // Grey Green
+        accent:     "#EAFED9",   // Pale Leaf
+
+        // Text
+        "text-main":    "#2B352F", // Deep Forest
+        "text-gray":    "#57615B", // Grey Green
+        "text-light":   "#717171", // Generic Gray
+        "text-placeholder": "#9CA3AF",
+
+        // Semantic
+        border:   "#E5E7EB",
+        "input-bg": "#F9FAFB",
+        error:    "#BD1919",
+        success:  "#4CAF50",
       },
     },
   },

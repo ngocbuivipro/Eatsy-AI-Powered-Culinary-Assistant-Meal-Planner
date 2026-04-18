@@ -25,8 +25,8 @@ requiredEnv.forEach((key) => {
 
 // Validate DB separately
 if (!dbUri) {
-    console.error(`❌ CRITICAL ERROR: Database URI (MONGODB_URI or MONGO_URI) is missing in .env file!`);
-    process.exit(1);
+  console.error(`❌ CRITICAL ERROR: Database URI (MONGODB_URI or MONGO_URI) is missing in .env file!`);
+  process.exit(1);
 }
 
 const config = {
@@ -41,11 +41,13 @@ const config = {
   },
   ai: {
     geminiKey: process.env.GEMINI_API_KEY,
-    geminiModel: process.env.GEMINI_MODEL || "gemini-1.5-flash",
+    geminiModel: process.env.GEMINI_MODEL || "gemini-2.5-flash",
   },
   spoonacular: {
     apiKey: process.env.SPOONACULAR_API_KEY,
+    useMock: process.env.USE_MOCK_DATA === "true",
   },
 };
+
 
 export default config;

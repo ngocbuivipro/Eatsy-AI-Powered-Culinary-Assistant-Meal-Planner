@@ -32,26 +32,47 @@ const useAuthStore = create((set) => ({
   user: null,
   token: null,
   isAuthenticated: false,
-  isGreetingFinished: false, // Thêm state quản lý màn hình chào
+  isGreetingFinished: false,
+  isOnboarded: false, // Thêm state quản lý onboarding
   isLoading: true,
 
   finishGreeting: () => set({ isGreetingFinished: true }),
+  
+  completeOnboarding: async () => {
+    try {
+      // Gọi API cập nhật trạng thái lên server (Sửa PATCH -> PUT vì server dùng PUT)
+      await apiClient.put('/users/profile', { hasCompletedOnboarding: true });
+      await safeStorage.setItem('hasCompletedOnboarding', 'true');
+      set({ isOnboarded: true });
+    } catch (error) {
+      console.error('Failed to sync onboarding status:', error);
+      // Vẫn set tốn tại local để user có thể tiếp tục
+      set({ isOnboarded: true });
+    }
+  },
 
   init: async () => {
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    
     try {
-      const token = await safeStorage.getItem('userToken');
-      const userStr = await safeStorage.getItem('userData');
-      
+      const [token, userStr] = await Promise.all([
+        safeStorage.getItem('userToken'),
+        safeStorage.getItem('userData'),
+        delay(2500)
+      ]);
+
       if (token && userStr) {
-        set({ 
-          token, 
-          user: JSON.parse(userStr), 
+        const user = JSON.parse(userStr);
+        set({
+          token,
+          user,
           isAuthenticated: true,
-          isGreetingFinished: true // Người cũ vào thẳng luôn ko chào
+          isGreetingFinished: true,
+          isOnboarded: user.hasCompletedOnboarding === true
         });
       }
     } catch (error) {
-      console.log('Auth check skipped (normal for first time)');
+      console.log('Auth check error:', error);
     } finally {
       set({ isLoading: false });
     }
@@ -65,8 +86,21 @@ const useAuthStore = create((set) => ({
       await safeStorage.setItem('userToken', token);
       await safeStorage.setItem('userData', JSON.stringify(user));
 
-      // Reset greeting cho người vừa đăng nhập xong
-      set({ user, token, isAuthenticated: true, isGreetingFinished: false });
+      const userData = {
+        ...user,
+        hasCompletedOnboarding: !!user.hasCompletedOnboarding
+      };
+
+      await safeStorage.setItem('userToken', token);
+      await safeStorage.setItem('userData', JSON.stringify(userData));
+
+      set({ 
+        user: userData,
+        token, 
+        isAuthenticated: true, 
+        isGreetingFinished: false,
+        isOnboarded: userData.hasCompletedOnboarding
+      });
       return { success: true };
     } catch (error) {
       if (!error.response) {
@@ -79,13 +113,8 @@ const useAuthStore = create((set) => ({
 
   register: async (name, email, password) => {
     try {
-      const response = await apiClient.post('/users/register', { name, email, password });
-      const { user, token } = response.data.data;
-
-      await safeStorage.setItem('userToken', token);
-      await safeStorage.setItem('userData', JSON.stringify(user));
-
-      set({ user, token, isAuthenticated: true, isGreetingFinished: false });
+      // Đăng ký xong không tự động login nữa
+      await apiClient.post('/users/register', { name, email, password });
       return { success: true };
     } catch (error) {
       if (!error.response) {
@@ -99,7 +128,8 @@ const useAuthStore = create((set) => ({
   logout: async () => {
     await safeStorage.removeItem('userToken');
     await safeStorage.removeItem('userData');
-    set({ user: null, token: null, isAuthenticated: false });
+    await safeStorage.removeItem('hasCompletedOnboarding');
+    set({ user: null, token: null, isAuthenticated: false, isOnboarded: false, isGreetingFinished: false });
   },
 }));
 
