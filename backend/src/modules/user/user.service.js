@@ -79,7 +79,7 @@ export const updateProfile = async (userId, updateData) => {
     throw new ApiError(404, MESSAGES.AUTH.NOT_FOUND);
   }
 
-  const allowedFields = ["name", "avatarUrl", "dietaryPreferences", "healthGoals", "measurementSystem"];
+  const allowedFields = ["name", "avatarUrl", "dietaryPreferences", "healthGoals", "measurementSystem", "hasCompletedOnboarding"];
   allowedFields.forEach((field) => {
     if (updateData[field] !== undefined) {
       user[field] = updateData[field];

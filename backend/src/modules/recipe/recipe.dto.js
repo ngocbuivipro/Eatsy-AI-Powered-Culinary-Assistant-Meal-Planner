@@ -6,6 +6,15 @@
 export const RecipeResponseDTO = (recipe) => {
   if (!recipe) return null;
 
+  // Xử lý làm phẳng danh sách các bước nấu ăn (Flatten instructions)
+  let steps = [];
+  if (recipe.steps && Array.isArray(recipe.steps)) {
+    steps = recipe.steps;
+  } else if (recipe.analyzedInstructions && Array.isArray(recipe.analyzedInstructions)) {
+    // Spoonacular gộp các nhóm bước vào analyzedInstructions
+    steps = recipe.analyzedInstructions.flatMap(instruction => instruction.steps || []);
+  }
+
   return {
     id: recipe._id || recipe.id,
     title: recipe.title,
@@ -17,7 +26,7 @@ export const RecipeResponseDTO = (recipe) => {
     difficulty: recipe.difficulty || "medium",
     mealType: recipe.mealType || [],
     ingredients: recipe.ingredients || recipe.extendedIngredients || [],
-    steps: recipe.steps || recipe.analyzedInstructions || [],
+    steps: steps, // Bây giờ luôn là một mảng phẳng các { number, step }
     nutrition: recipe.nutrition,
     author: recipe.author,
     source: recipe.source || "spoonacular",

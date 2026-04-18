@@ -9,6 +9,7 @@ import PantryNavigator from './PantryNavigator';
 import ChatScreen from '../screens/ChatScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import { COLORS } from '../constants/Colors';
+import TourTarget from '../components/tour/TourTarget';
 
 // Placeholder screens cho các tab còn lại
 const Placeholder = ({ name }) => (
@@ -17,8 +18,8 @@ const Placeholder = ({ name }) => (
 
 const Tab = createBottomTabNavigator();
 
-const TabBarIcon = ({ Icon, focused, size = 22 }) => {
-  return (
+const TabBarIcon = ({ Icon, focused, size = 22, tourKey }) => {
+  const content = (
     <View style={{
       width: 50,
       height: 50,
@@ -34,6 +35,12 @@ const TabBarIcon = ({ Icon, focused, size = 22 }) => {
       />
     </View>
   );
+
+  if (tourKey) {
+    return <TourTarget tourKey={tourKey}>{content}</TourTarget>;
+  }
+
+  return content;
 };
 
 const TabNavigator = () => {
@@ -57,7 +64,9 @@ const TabNavigator = () => {
         name="HomeTab" 
         component={HomeScreen} 
         options={{
-          tabBarIcon: ({ focused }) => <TabBarIcon Icon={House} focused={focused} />
+          tabBarIcon: ({ focused }) => (
+            <TabBarIcon Icon={House} focused={focused} tourKey="tab_home" />
+          )
         }}
       />
       <Tab.Screen 

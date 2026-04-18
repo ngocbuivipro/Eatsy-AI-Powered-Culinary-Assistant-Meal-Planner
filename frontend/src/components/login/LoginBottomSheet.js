@@ -6,6 +6,8 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../../constants/Colors';
 import { STRINGS } from '../../constants/Strings';
+import useAuthStore from '../../store/useAuthStore';
+
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -57,6 +59,14 @@ const LoginBottomSheet = ({ isVisible, onClose }) => {
     }, 300);
   };
 
+  const handleAppleLogin = () => {
+    alert("🚧 Apple Sign-in is coming soon! We're fine-tuning the experience for you. Stay tuned! ✨");
+  };
+
+  const handleGoogleLogin = () => {
+    alert("🛠️ Google Login is currently under maintenance for Expo Go. We'll be back soon! 🚀");
+  };
+
   return (
     <Modal
       transparent={true}
@@ -72,7 +82,7 @@ const LoginBottomSheet = ({ isVisible, onClose }) => {
           </Pressable>
         </Animated.View>
 
-        <Animated.View 
+        <Animated.View
           style={[{ transform: [{ translateY: slideAnim }], backgroundColor: COLORS.white }]}
           className="w-full rounded-t-[40px] pt-8 pb-12 px-8 shadow-2xl"
         >
@@ -81,20 +91,23 @@ const LoginBottomSheet = ({ isVisible, onClose }) => {
           <Text style={{ color: COLORS.text }} className="text-3xl font-bold text-center mb-8">{STRINGS.AUTH.LOGIN_BUTTON}</Text>
 
           <View className="w-full">
-            <LoginButton 
+            <LoginButton
+              onPress={handleAppleLogin}
               icon={<Ionicons name="logo-apple" size={24} color="white" />}
               label="Sign in with Apple"
               bgStyle={{ backgroundColor: '#0c0f0d' }}
-              textColor="text-white"
+              textColor={`text-[${COLORS.background}]`}
+              labelStyle={{ color: COLORS.background }}
             />
-            <LoginButton 
+            <LoginButton
+              onPress={handleGoogleLogin}
               icon={<Ionicons name="logo-google" size={24} color="#EA4335" />}
               label="Sign in with Google"
               bgStyle={{ backgroundColor: COLORS.white, borderColor: COLORS.border, borderWidth: 1 }}
               textColor={`text-[${COLORS.text}]`}
               labelStyle={{ color: COLORS.text }}
             />
-            <LoginButton 
+            <LoginButton
               icon={<MaterialCommunityIcons name="email-outline" size={24} color={COLORS.text} />}
               label="Continue with Email"
               bgStyle={{ backgroundColor: COLORS.white, borderColor: COLORS.border, borderWidth: 1 }}
@@ -117,7 +130,7 @@ const LoginBottomSheet = ({ isVisible, onClose }) => {
 };
 
 const LoginButton = ({ icon, label, bgStyle, labelStyle, onPress }) => (
-  <TouchableOpacity 
+  <TouchableOpacity
     style={[bgStyle]}
     className={`flex-row items-center justify-center px-8 py-4 rounded-2xl shadow-sm mb-4`}
     activeOpacity={0.7}

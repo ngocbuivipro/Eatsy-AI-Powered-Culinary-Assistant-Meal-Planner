@@ -3,10 +3,10 @@
 export const ENDPOINTS = {
   BASE_URL: "/api",
   AUTH: {
-    LOGIN: "/user/login",
-    REGISTER: "/user/register",
-    OAUTH: "/user/oauth",
-    PROFILE: "/user/profile",
+    LOGIN: "/users/login",
+    REGISTER: "/users/register",
+    OAUTH: "/users/oauth",
+    PROFILE: "/users/profile",
   },
   RECIPES: {
     BASE: "/recipe",

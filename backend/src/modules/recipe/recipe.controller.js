@@ -31,8 +31,9 @@ export const matchRecipes = catchAsync(async (req, res) => {
 export const getRandomRecipes = catchAsync(async (req, res) => {
   const { type } = req.query;
   const system = req.user?.measurementSystem || 'metric';
+  const userId = req.user?._id;
   
-  const recipes = await recipeService.getDiscovery(type, system);
+  const recipes = await recipeService.getDiscovery(type, system, userId);
   
   return sendResponse(
     res, 

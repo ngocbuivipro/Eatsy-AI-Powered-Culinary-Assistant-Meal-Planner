@@ -1,12 +1,12 @@
-// [frontend/src/components/home/CuratedGrid.js]
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getHighResImage } from '../../utils/imageHelper';
 import { COLORS } from '../../constants/Colors';
 import { STRINGS } from '../../constants/Strings';
+import TourTarget from '../tour/TourTarget';
 
-const CuratedGrid = ({ recipes, onRecipePress }) => {
+const CuratedGrid = ({ recipes, onRecipePress, onStepActive }) => {
   if (!recipes || recipes.length === 0) return null;
 
   const getDifficulty = (item) => {
@@ -15,62 +15,71 @@ const CuratedGrid = ({ recipes, onRecipePress }) => {
     return 'Hard';
   };
 
-  return (
-    <View style={styles.container}>
-      {/* Section Header */}
-      <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: COLORS.text }]}>Curated for you</Text>
-        <TouchableOpacity>
-          <Text style={[styles.seeAll, { color: COLORS.primary }]}>See all</Text>
-        </TouchableOpacity>
+  const renderCard = (item) => (
+    <TouchableOpacity
+      key={item.id}
+      onPress={() => onRecipePress(item)}
+      activeOpacity={0.8}
+      style={[styles.card, { backgroundColor: COLORS.white, shadowColor: COLORS.primary }]}
+    >
+      {/* Left: Product Image */}
+      <View style={[styles.imageContainer, { backgroundColor: COLORS.inputBg }]}>
+        <Image
+          source={{ uri: getHighResImage(item.image || item.imageUrl) }}
+          style={styles.image}
+        />
       </View>
 
-      {/* Horizontal Cards List */}
-      <View style={styles.list}>
-        {recipes.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            onPress={() => onRecipePress(item)}
-            activeOpacity={0.8}
-            style={[styles.card, { backgroundColor: COLORS.white, shadowColor: COLORS.primary }]}
-          >
-            {/* Left: Product Image */}
-            <View style={[styles.imageContainer, { backgroundColor: COLORS.inputBg }]}>
-              <Image
-                source={{ uri: getHighResImage(item.image || item.imageUrl) }}
-                style={styles.image}
-              />
-            </View>
+      {/* Right: Product Info */}
+      <View style={styles.infoContainer}>
+        <Text style={[styles.recipeTitle, { color: COLORS.text }]} numberOfLines={2}>
+          {item.title}
+        </Text>
+        
+        <View style={styles.statsRow}>
+          <View style={styles.statItem}>
+            <Ionicons name="time-outline" size={12} color={COLORS.primary} />
+            <Text style={[styles.statText, { color: COLORS.textGray }]}>{item.readyInMinutes || item.prepTime} min</Text>
+          </View>
+          <View style={[styles.statDivider, { backgroundColor: COLORS.border }]} />
+          <View style={styles.statItem}>
+            <Ionicons name="bar-chart-outline" size={12} color={COLORS.primary} />
+            <Text style={[styles.statText, { color: COLORS.textGray }]}>{getDifficulty(item)}</Text>
+          </View>
+        </View>
 
-            {/* Right: Product Info */}
-            <View style={styles.infoContainer}>
-              <Text style={[styles.recipeTitle, { color: COLORS.text }]} numberOfLines={2}>
-                {item.title}
-              </Text>
-              
-              <View style={styles.statsRow}>
-                <View style={styles.statItem}>
-                  <Ionicons name="time-outline" size={12} color={COLORS.primary} />
-                  <Text style={[styles.statText, { color: COLORS.textGray }]}>{item.readyInMinutes || item.prepTime} min</Text>
-                </View>
-                <View style={[styles.statDivider, { backgroundColor: COLORS.border }]} />
-                <View style={styles.statItem}>
-                  <Ionicons name="bar-chart-outline" size={12} color={COLORS.primary} />
-                  <Text style={[styles.statText, { color: COLORS.textGray }]}>{getDifficulty(item)}</Text>
-                </View>
-              </View>
-
-              <View style={styles.bottomRow}>
-                <Text style={[styles.caloriesText, { color: COLORS.primary }]}>
-                  {item.calories || Math.round(Math.random() * 300 + 200)} kcal
-                </Text>
-                <TouchableOpacity style={[styles.addBtn, { backgroundColor: COLORS.inputBg }]}>
-                  <Ionicons name="chevron-forward" size={14} color={COLORS.primary} />
-                </TouchableOpacity>
-              </View>
-            </View>
+        <View style={styles.bottomRow}>
+          <Text style={[styles.caloriesText, { color: COLORS.primary }]}>
+            {item.calories || Math.round(Math.random() * 300 + 200)} kcal
+          </Text>
+          <TouchableOpacity style={[styles.addBtn, { backgroundColor: COLORS.inputBg }]}>
+            <Ionicons name="chevron-forward" size={14} color={COLORS.primary} />
           </TouchableOpacity>
-        ))}
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  return (
+    <View style={styles.container}>
+      <TourTarget tourKey="home_curated" onActive={onStepActive}>
+        {/* Section Header */}
+        <View style={styles.header}>
+          <Text style={[styles.headerTitle, { color: COLORS.text }]}>{STRINGS.HOME.CURATED_TITLE || "Curated for you"}</Text>
+          <TouchableOpacity>
+            <Text style={[styles.seeAll, { color: COLORS.primary }]}>{STRINGS.COMMON.SEE_ALL || "See all"}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Highlight first 2 items as part of the intro */}
+        <View style={styles.list}>
+          {recipes.slice(0, 2).map(renderCard)}
+        </View>
+      </TourTarget>
+
+      {/* Remaining items outside of initial tour focus */}
+      <View style={[styles.list, { marginTop: 16 }]}>
+        {recipes.slice(2).map(renderCard)}
       </View>
     </View>
   );

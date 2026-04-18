@@ -20,15 +20,20 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { getHighResImage } from '../utils/imageHelper';
 import apiClient from '../api/client';
 import { COLORS } from '../constants/Colors';
 import { STRINGS } from '../constants/Strings';
+import TourTarget from '../components/tour/TourTarget';
+import useTourStore from '../store/useTourStore';
+import { APP_TOURS } from '../constants/AppConstants';
 
 const { width, height } = Dimensions.get('window');
+const HERO_HEIGHT = height * 0.42;
 const SHEET_HEIGHT = height * 0.72;
 
-// ─── Typing Indicator ─────────────────────────────────────────────────────────
+// ─── Typing Indicator (Giữ lại cho AI Chat) ───────────────────────────────────
 const TypingDots = () => {
   const d1 = useRef(new Animated.Value(0)).current;
   const d2 = useRef(new Animated.Value(0)).current;
@@ -59,7 +64,7 @@ const TypingDots = () => {
   );
 };
 
-// ─── AI Chat Bottom Sheet ─────────────────────────────────────────────────────
+// ─── AI Chat Bottom Sheet (Giữ nguyên) ─────────────────────────────────────
 const AIChatSheet = ({ visible, onClose, recipe }) => {
   const slideAnim = useRef(new Animated.Value(SHEET_HEIGHT)).current;
   const [chatMessages, setChatMessages] = useState([]);
@@ -283,8 +288,39 @@ const RecipeDetailsScreen = ({ route, navigation }) => {
   const [loading, setLoading] = useState(true);
   const [recipe, setRecipe] = useState(null);
   const [sheetVisible, setSheetVisible] = useState(false);
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const mainScrollRef = useRef(null);
+  const { startTour } = useTourStore();
+  
+  // Toạ độ các phần để tự động cuộn
+  const [ingredientsY, setIngredientsY] = useState(0);
+  const [instructionsY, setInstructionsY] = useState(0);
 
-  useEffect(() => { fetchDetails(); }, [recipeId]);
+  useEffect(() => { 
+    fetchDetails(); 
+  }, [recipeId]);
+
+  // Kích hoạt tour sau khi dữ liệu đã load xong
+  useEffect(() => {
+    if (!loading && recipe) {
+      const timer = setTimeout(() => {
+        startTour('recipe_details', APP_TOURS.RECIPE);
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, recipe]);
+
+  const handleScrollToIngredients = () => {
+    if (ingredientsY > 0) {
+      mainScrollRef.current?.scrollTo({ y: ingredientsY - 40, animated: true });
+    }
+  };
+
+  const handleScrollToInstructions = () => {
+    if (instructionsY > 0) {
+      mainScrollRef.current?.scrollTo({ y: instructionsY - 40, animated: true });
+    }
+  };
 
   const fetchDetails = async () => {
     try {
@@ -312,59 +348,101 @@ const RecipeDetailsScreen = ({ route, navigation }) => {
 
   const calories = recipe.nutrition?.nutrients?.find(n => n.name === 'Calories')?.amount || 420;
 
+  // Header Animation logic
+  const imageScale = scrollY.interpolate({
+    inputRange: [-HERO_HEIGHT, 0],
+    outputRange: [2, 1],
+    extrapolate: 'clamp',
+  });
+
   return (
     <View style={[styles.container, { backgroundColor: COLORS.background }]}>
-      <StatusBar barStyle="light-content" translucent />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
       
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.heroSection}>
-          <Image source={{ uri: getHighResImage(recipe.image || recipe.imageUrl) }} style={styles.heroImage} />
-          <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={styles.imageOverlay}>
-            <View style={styles.titleContainer}>
-              <View style={[styles.chefTag, { backgroundColor: COLORS.primary }]}>
-                <Text style={[styles.chefTagText, { color: COLORS.accent }]}>{STRINGS.RECIPE.CHEF_CHOICE}</Text>
-              </View>
-              <Text style={styles.title}>{recipe.title}</Text>
-            </View>
-          </LinearGradient>
-          
-          <View style={styles.headerControls}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
-              <Ionicons name="chevron-back" size={24} color={COLORS.white} />
-            </TouchableOpacity>
-            <View style={styles.headerRight}>
-              <TouchableOpacity style={styles.iconButton}><Ionicons name="share-outline" size={22} color={COLORS.white} /></TouchableOpacity>
-              <TouchableOpacity style={styles.iconButton}><Ionicons name="heart-outline" size={22} color={COLORS.white} /></TouchableOpacity>
-            </View>
-          </View>
+      {/* ── Header Controls (Sticky) ── */}
+      <View style={styles.headerControls}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconWrapper}>
+          <BlurView intensity={25} style={styles.blurCircle}>
+            <Ionicons name="chevron-back" size={24} color={COLORS.white} />
+          </BlurView>
+        </TouchableOpacity>
+        <View style={styles.headerRight}>
+          <TouchableOpacity style={styles.iconWrapper}>
+            <BlurView intensity={25} style={styles.blurCircle}>
+              <Ionicons name="share-outline" size={20} color={COLORS.white} />
+            </BlurView>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconWrapper}>
+            <BlurView intensity={25} style={styles.blurCircle}>
+              <Ionicons name="heart-outline" size={20} color={COLORS.white} />
+            </BlurView>
+          </TouchableOpacity>
         </View>
+      </View>
 
-        <View style={styles.content}>
-          <View style={[styles.statsBar, { backgroundColor: COLORS.white, shadowColor: '#000' }]}>
-            <View style={styles.statItem}>
-              <Ionicons name="time-outline" size={18} color={COLORS.primary} />
-              <Text style={[styles.statLabel, { color: COLORS.placeholder }]}>{STRINGS.RECIPE.PREP_TIME}</Text>
-              <Text style={[styles.statValue, { color: COLORS.text }]}>{recipe.prepTime || recipe.readyInMinutes} min</Text>
+      <Animated.ScrollView 
+        ref={mainScrollRef}
+        showsVerticalScrollIndicator={false} 
+        contentContainerStyle={styles.scrollContent}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
+      >
+        {/* ── Hero Image Section ── */}
+        <Animated.View style={[styles.heroSection, { transform: [{ scale: imageScale }] }]}>
+          <Image 
+            source={{ uri: getHighResImage(recipe.image || recipe.imageUrl) }} 
+            style={styles.heroImage} 
+            resizeMode="cover"
+          />
+          <LinearGradient 
+            colors={['rgba(0,0,0,0.3)', 'transparent', 'rgba(0,0,0,0.6)']} 
+            style={StyleSheet.absoluteFill} 
+          />
+        </Animated.View>
+
+        {/* ── Content Container (Overlapping) ── */}
+        <View style={[styles.content, { backgroundColor: COLORS.background }]}>
+          
+          {/* Header Info (Khôi phục kiểu cũ) */}
+          <View style={styles.headerInfoOld}>
+            <View style={[styles.chefTag, { backgroundColor: COLORS.primary }]}>
+              <Text style={[styles.chefTagText, { color: COLORS.accent }]}>{STRINGS.RECIPE.CHEF_CHOICE}</Text>
             </View>
-            <View style={[styles.verticalDivider, { backgroundColor: COLORS.border }]} />
-            <View style={styles.statItem}>
-              <Ionicons name="bar-chart-outline" size={18} color={COLORS.primary} />
-              <Text style={[styles.statLabel, { color: COLORS.placeholder }]}>{STRINGS.RECIPE.DIFFICULTY}</Text>
-              <Text style={[styles.statValue, { color: COLORS.text }]}>{recipe.difficulty || "Easy"}</Text>
-            </View>
-            <View style={[styles.verticalDivider, { backgroundColor: COLORS.border }]} />
-            <View style={styles.statItem}>
-              <Ionicons name="flame-outline" size={18} color={COLORS.primary} />
-              <Text style={[styles.statLabel, { color: COLORS.placeholder }]}>{STRINGS.RECIPE.CALORIES}</Text>
-              <Text style={[styles.statValue, { color: COLORS.text }]}>{Math.round(calories)} kcal</Text>
-            </View>
+            <Text style={[styles.title, { color: COLORS.text }]}>{recipe.title}</Text>
           </View>
 
-          <View style={styles.sectionHeader}>
+          {/* Stats Bar (Khôi phục kiểu cũ có divider) */}
+          <TourTarget tourKey="recipe_stats">
+            <View style={[styles.statsBar, { backgroundColor: COLORS.white, shadowColor: '#000' }]}>
+              <View style={styles.statItem}>
+                <Ionicons name="time-outline" size={18} color={COLORS.primary} />
+                <Text style={[styles.statLabel, { color: COLORS.placeholder }]}>{STRINGS.RECIPE.PREP_TIME}</Text>
+                <Text style={[styles.statValue, { color: COLORS.text }]}>{recipe.prepTime || recipe.readyInMinutes} min</Text>
+              </View>
+              <View style={[styles.verticalDivider, { backgroundColor: COLORS.border } ]} />
+              <View style={styles.statItem}>
+                <Ionicons name="bar-chart-outline" size={18} color={COLORS.primary} />
+                <Text style={[styles.statLabel, { color: COLORS.placeholder }]}>{STRINGS.RECIPE.DIFFICULTY}</Text>
+                <Text style={[styles.statValue, { color: COLORS.text }]}>{recipe.difficulty || "Easy"}</Text>
+              </View>
+              <View style={[styles.verticalDivider, { backgroundColor: COLORS.border }]} />
+              <View style={styles.statItem}>
+                <Ionicons name="flame-outline" size={18} color={COLORS.primary} />
+                <Text style={[styles.statLabel, { color: COLORS.placeholder }]}>{STRINGS.RECIPE.CALORIES}</Text>
+                <Text style={[styles.statValue, { color: COLORS.text }]}>{Math.round(calories)} kcal</Text>
+              </View>
+            </View>
+          </TourTarget>
+
+          {/* Description & Health Note (Khôi phục kiểu cũ) */}
+          <View style={styles.oldSectionHeader}>
             <Text style={[styles.sectionTitle, { color: COLORS.text }]}>{STRINGS.RECIPE.THE_PROFILE}</Text>
           </View>
           <Text style={[styles.description, { color: COLORS.textGray }]}>
-            "{recipe.description?.replace(/<[^>]*>?/gm, '').split('.').slice(0, 3).join('.') + '.'}"
+            "{recipe.description?.replace(/<[^>]*>?/gm, '') || "A delicious meal prepared with fresh ingredients and love."}"
           </Text>
 
           <View style={[styles.healthNote, { backgroundColor: COLORS.inputBg }]}>
@@ -377,59 +455,80 @@ const RecipeDetailsScreen = ({ route, navigation }) => {
             </Text>
           </View>
 
-          <View style={styles.sectionHeaderRow}>
-            <Text style={[styles.sectionTitle, { color: COLORS.text }]}>{STRINGS.RECIPE.INGREDIENTS}</Text>
-            <Text style={[styles.servingText, { color: COLORS.placeholder }]}>{recipe.servings} {STRINGS.RECIPE.SERVINGS}</Text>
-          </View>
-          <View style={styles.ingredientsList}>
-            {(recipe.ingredients || recipe.extendedIngredients)?.map((ing, idx) => (
-              <View key={`${ing.id}-${idx}`} style={[styles.ingredientItem, { borderBottomColor: COLORS.border }]}>
-                <View style={styles.ingredientLeft}>
-                  <View style={[styles.dot, { backgroundColor: COLORS.primary }]} />
-                  <Text style={[styles.ingredientName, { color: COLORS.text }]}>{ing.originalName || ing.name}</Text>
-                </View>
-                <Text style={[styles.ingredientAmount, { color: COLORS.primary }]}>
-                  {Math.round(ing.amount)} {ing.unit}
-                </Text>
+          {/* Ingredients (Khôi phục kiểu cũ) */}
+          <View 
+            onLayout={(e) => setIngredientsY(e.nativeEvent.layout.y)}
+          >
+            <TourTarget tourKey="recipe_ingredients" onActive={handleScrollToIngredients}>
+              <View style={styles.oldSectionHeaderRow}>
+                <Text style={[styles.sectionTitle, { color: COLORS.text }]}>{STRINGS.RECIPE.INGREDIENTS}</Text>
+                <Text style={[styles.servingText, { color: COLORS.placeholder }]}>{recipe.servings} {STRINGS.RECIPE.SERVINGS}</Text>
               </View>
-            ))}
-          </View>
-
-          <View style={styles.sectionHeaderRow}>
-            <Text style={[styles.sectionTitle, { color: COLORS.text }]}>{STRINGS.RECIPE.INSTRUCTIONS}</Text>
-            <View style={[styles.instructionLine, { backgroundColor: COLORS.primary }]} />
-          </View>
-          <View style={styles.instructionsList}>
-            {(recipe.steps || recipe.analyzedInstructions?.[0]?.steps)?.map((step, idx) => (
-              <View key={step.number} style={styles.stepItem}>
-                <View style={styles.stepNumberContainer}>
-                  <View style={[styles.stepNumber, { backgroundColor: COLORS.white, borderColor: COLORS.border }, idx === 0 && { backgroundColor: COLORS.primary, borderColor: COLORS.primary }]}>
-                    <Text style={[styles.stepNumberText, { color: COLORS.placeholder }, idx === 0 && { color: COLORS.white }]}>
-                      {step.number}
+              <View style={styles.ingredientsList}>
+                {(recipe.ingredients || []).map((ing, idx) => (
+                  <View key={`ing-${ing.id || idx}`} style={[styles.ingredientItem, { borderBottomColor: COLORS.border }]}>
+                    <View style={styles.ingredientLeft}>
+                      <View style={[styles.dot, { backgroundColor: COLORS.primary }]} />
+                      <Text style={[styles.ingredientName, { color: COLORS.text }]}>{ing.originalName || ing.name}</Text>
+                    </View>
+                    <Text style={[styles.ingredientAmount, { color: COLORS.primary }]}>
+                      {Math.round(ing.amount)} {ing.unit}
                     </Text>
                   </View>
-                  {idx < (recipe.steps || recipe.analyzedInstructions[0].steps).length - 1 && (
-                    <View style={[styles.stepConnector, { backgroundColor: COLORS.border }]} />
-                  )}
-                </View>
-                <View style={styles.stepContent}>
-                  <Text style={[styles.stepTitle, { color: COLORS.text }]}>{STRINGS.RECIPE.STEP} {step.number}</Text>
-                  <Text style={[styles.stepDescription, { color: COLORS.textGray }]}>{step.step}</Text>
-                </View>
+                ))}
               </View>
-            ))}
+            </TourTarget>
+          </View>
+
+          {/* Instructions (Khôi phục kiểu cũ với connector) */}
+          <View 
+            onLayout={(e) => setInstructionsY(e.nativeEvent.layout.y)}
+          >
+            <TourTarget tourKey="recipe_instructions" onActive={handleScrollToInstructions}>
+              <View style={styles.oldSectionHeaderRow}>
+                <Text style={[styles.sectionTitle, { color: COLORS.text }]}>{STRINGS.RECIPE.INSTRUCTIONS}</Text>
+                <View style={[styles.instructionLine, { backgroundColor: COLORS.primary }]} />
+              </View>
+              <View style={styles.instructionsList}>
+                {(recipe.steps || []).map((step, idx) => (
+                  <View key={`step-${step.number || idx}`} style={styles.stepItem}>
+                    <View style={styles.stepNumberContainer}>
+                      <View style={[styles.stepNumber, { backgroundColor: COLORS.white, borderColor: COLORS.border }, idx === 0 && { backgroundColor: COLORS.primary, borderColor: COLORS.primary }]}>
+                        <Text style={[styles.stepNumberText, { color: COLORS.placeholder }, idx === 0 && { color: COLORS.white }]}>
+                          {step.number}
+                        </Text>
+                      </View>
+                      {idx < (recipe.steps || []).length - 1 && (
+                        <View style={[styles.stepConnector, { backgroundColor: COLORS.border }]} />
+                      )}
+                    </View>
+                    <View style={styles.stepContent}>
+                      <Text style={[styles.stepTitle, { color: COLORS.text }]}>{STRINGS.RECIPE.STEP} {step.number}</Text>
+                      <Text style={[styles.stepDescription, { color: COLORS.textGray }]}>{step.step}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </TourTarget>
           </View>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
-      <View style={styles.aiButtonContainer}>
-        <TouchableOpacity style={[styles.aiButton, { backgroundColor: 'rgba(255,255,255,0.92)', borderColor: 'rgba(82,99,71,0.15)' }]} activeOpacity={0.9} onPress={() => setSheetVisible(true)}>
-          <View style={styles.aiButtonContent}>
-            <View style={[styles.aiIndicator, { backgroundColor: COLORS.primary }]} />
-            <Text style={[styles.aiButtonText, { color: COLORS.textGray }]}>{STRINGS.RECIPE.ASK_AI_BUTTON}</Text>
-          </View>
-          <Ionicons name="sparkles-outline" size={20} color={COLORS.primary} />
-        </TouchableOpacity>
+      {/* AI Assistant Button */}
+      <View style={styles.floatingAction}>
+        <TourTarget tourKey="recipe_ai">
+          <TouchableOpacity 
+            style={[styles.aiButton, { backgroundColor: 'rgba(255,255,255,0.92)', borderColor: 'rgba(82,99,71,0.15)' }]} 
+            activeOpacity={0.9} 
+            onPress={() => setSheetVisible(true)}
+          >
+            <View style={styles.aiButtonContent}>
+              <View style={[styles.aiIndicator, { backgroundColor: COLORS.primary }]} />
+              <Text style={[styles.aiButtonText, { color: COLORS.textGray }]}>{STRINGS.RECIPE.ASK_AI_BUTTON}</Text>
+            </View>
+            <Ionicons name="sparkles-outline" size={20} color={COLORS.primary} />
+          </TouchableOpacity>
+        </TourTarget>
       </View>
 
       <AIChatSheet visible={sheetVisible} onClose={() => setSheetVisible(false)} recipe={recipe} />
@@ -437,7 +536,7 @@ const RecipeDetailsScreen = ({ route, navigation }) => {
   );
 };
 
-// Reuse existing styles logic, just updating values that were hardcoded
+// Styles (Merge Header mới với Content cũ)
 const sheetStyles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' },
   sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, height: SHEET_HEIGHT, borderTopLeftRadius: 28, borderTopRightRadius: 28, shadowColor: '#000', shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.12, shadowRadius: 20, elevation: 20 },
@@ -474,30 +573,38 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   scrollContent: { paddingBottom: 120 },
-  heroSection: { height: 480, width: width, position: 'relative', borderBottomLeftRadius: 40, borderBottomRightRadius: 40, overflow: 'hidden', backgroundColor: '#000' },
-  heroImage: { width: '100%', height: '100%', opacity: 0.85 },
-  imageOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, minHeight: 220, justifyContent: 'flex-end', padding: 24, paddingBottom: 40 },
-  titleContainer: { width: '100%', alignItems: 'flex-start' },
+  heroSection: { height: HERO_HEIGHT, width: width, backgroundColor: '#000', overflow: 'hidden' },
+  heroImage: { width: '100%', height: '100%' },
+  headerControls: { position: 'absolute', top: Platform.OS === 'ios' ? 50 : 30, left: 16, right: 16, flexDirection: 'row', justifyContent: 'space-between', zIndex: 100 },
+  headerRight: { flexDirection: 'row', gap: 8 },
+  iconWrapper: { overflow: 'hidden', borderRadius: 20 },
+  blurCircle: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  content: { marginTop: -40, borderTopLeftRadius: 40, borderTopRightRadius: 40, paddingHorizontal: 24, paddingTop: 32, paddingBottom: 40 },
+  
+  // Header Info Kiểu cũ
+  headerInfoOld: { marginBottom: 20 },
   chefTag: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginBottom: 12, alignSelf: 'flex-start' },
-  chefTagText: { fontSize: 10, fontWeight: '900', letterSpacing: 1, lineHeight: 14 },
-  title: { fontSize: 34, fontWeight: '800', color: '#FFF', letterSpacing: -1, lineHeight: 40 },
-  headerControls: { position: 'absolute', top: Platform.OS === 'ios' ? 60 : 40, left: 20, right: 20, flexDirection: 'row', justifyContent: 'space-between', zIndex: 10 },
-  headerRight: { flexDirection: 'row', gap: 12 },
-  iconButton: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  content: { paddingHorizontal: 24, paddingTop: 32 },
-  statsBar: { flexDirection: 'row', borderRadius: 24, paddingVertical: 20, paddingHorizontal: 10, marginBottom: 40, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 10, elevation: 2, alignItems: 'center', justifyContent: 'space-around' },
+  chefTagText: { fontSize: 10, fontWeight: '900', letterSpacing: 1 },
+  title: { fontSize: 32, fontWeight: '800', letterSpacing: -1 },
+
+  // Stats bar kiểu cũ có vạch kẻ
+  statsBar: { flexDirection: 'row', borderRadius: 24, paddingVertical: 20, paddingHorizontal: 10, marginBottom: 32, elevation: 2, alignItems: 'center', justifyContent: 'space-around', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 10 },
   statItem: { alignItems: 'center', flex: 1 },
   statLabel: { fontSize: 9, fontWeight: '800', marginTop: 4, letterSpacing: 0.5 },
   statValue: { fontSize: 14, fontWeight: '700', marginTop: 2 },
   verticalDivider: { width: 1, height: 30 },
-  sectionHeader: { marginBottom: 16 },
+
+  // Description & Health Note kiểu cũ
+  oldSectionHeader: { marginBottom: 12 },
   sectionTitle: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
   description: { fontSize: 15, lineHeight: 24, marginBottom: 24 },
   healthNote: { borderRadius: 20, padding: 20, marginBottom: 40 },
   healthNoteHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   healthNoteTitle: { fontSize: 12, fontWeight: '800', letterSpacing: 0.5 },
   healthNoteText: { fontSize: 14, lineHeight: 20 },
-  sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+
+  // Ingredients kiểu cũ
+  oldSectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   servingText: { fontSize: 14, fontWeight: '600' },
   ingredientsList: { marginBottom: 40 },
   ingredientItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1 },
@@ -505,6 +612,8 @@ const styles = StyleSheet.create({
   dot: { width: 6, height: 6, borderRadius: 3 },
   ingredientName: { fontSize: 15, fontWeight: '600', flex: 1 },
   ingredientAmount: { fontSize: 14, fontWeight: '700' },
+
+  // Instructions kiểu cũ có connector
   instructionLine: { width: 40, height: 3, borderRadius: 2 },
   instructionsList: { paddingTop: 10 },
   stepItem: { flexDirection: 'row', gap: 20, marginBottom: 32 },
@@ -515,7 +624,9 @@ const styles = StyleSheet.create({
   stepContent: { flex: 1, paddingTop: 4 },
   stepTitle: { fontSize: 17, fontWeight: '800', marginBottom: 6 },
   stepDescription: { fontSize: 14, lineHeight: 22 },
-  aiButtonContainer: { position: 'absolute', bottom: 40, left: 24, right: 24 },
+
+  // AI Button Container
+  floatingAction: { position: 'absolute', bottom: 40, left: 24, right: 24 },
   aiButton: { height: 60, borderRadius: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, borderWidth: 1, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.15, shadowRadius: 20, elevation: 8 },
   aiButtonContent: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   aiIndicator: { width: 8, height: 8, borderRadius: 4 },
