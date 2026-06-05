@@ -1,39 +1,68 @@
 // [frontend/src/screens/LoginScreen.js]
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
-  View, Text, TextInput, TouchableOpacity, ActivityIndicator,
-  Alert, StyleSheet, Dimensions, Keyboard, Platform,
-  TouchableWithoutFeedback, Animated, KeyboardAvoidingView
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Asset } from 'expo-asset';
-import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
-import useAuthStore from '../store/useAuthStore';
-import { COLORS } from '../constants/Colors';
-import { STRINGS } from '../constants/Strings';
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+  Dimensions,
+  Keyboard,
+  Platform,
+  TouchableWithoutFeedback,
+  Animated,
+  KeyboardAvoidingView,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Asset } from "expo-asset";
+import { useNavigation } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
+import useAuthStore from "../store/useAuthStore";
+import { COLORS } from "../constants/Colors";
+import { STRINGS } from "../constants/Strings";
 
 // Preload hero asset ngay khi module được import
-Asset.fromModule(require('../../assets/login_hero.png')).downloadAsync();
+Asset.fromModule(require("../../assets/login_hero.png")).downloadAsync();
 
-const { height } = Dimensions.get('window');
+const { height } = Dimensions.get("window");
 const HERO_HEIGHT = height * 0.3;
 
 // ─────────────────────────────────────────────
 // Sub-component: AuthInput với focus animation
 // ─────────────────────────────────────────────
-const AuthInput = ({ icon, label, value, onChangeText, placeholder, secureTextEntry, keyboardType, autoCapitalize, rightIcon, onRightIconPress }) => {
+const AuthInput = ({
+  icon,
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  secureTextEntry,
+  keyboardType,
+  autoCapitalize,
+  rightIcon,
+  onRightIconPress,
+}) => {
   const [isFocused, setIsFocused] = useState(false);
   const borderAnim = useRef(new Animated.Value(0)).current;
 
   const handleFocus = () => {
     setIsFocused(true);
-    Animated.timing(borderAnim, { toValue: 1, duration: 200, useNativeDriver: false }).start();
+    Animated.timing(borderAnim, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
   };
   const handleBlur = () => {
     setIsFocused(false);
-    Animated.timing(borderAnim, { toValue: 0, duration: 200, useNativeDriver: false }).start();
+    Animated.timing(borderAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
   };
 
   const borderColor = borderAnim.interpolate({
@@ -66,7 +95,7 @@ const AuthInput = ({ icon, label, value, onChangeText, placeholder, secureTextEn
           onBlur={handleBlur}
           secureTextEntry={secureTextEntry}
           keyboardType={keyboardType}
-          autoCapitalize={autoCapitalize || 'none'}
+          autoCapitalize={autoCapitalize || "none"}
         />
         {rightIcon && (
           <TouchableOpacity onPress={onRightIconPress} className="p-1">
@@ -85,15 +114,23 @@ const LoginScreen = ({ route }) => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const imageOpacity = useRef(new Animated.Value(0)).current;
-  const [email, setEmail] = useState(route?.params?.email || '');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState(route?.params?.email || "");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const login = useAuthStore((state) => state.login);
 
+  useEffect(() => {
+    if (route?.params?.email) {
+      setEmail(route.params.email);
+    }
+  }, [route?.params?.email]);
+
   const handleImageLoad = () => {
     Animated.timing(imageOpacity, {
-      toValue: 1, duration: 300, useNativeDriver: true,
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
     }).start();
   };
 
@@ -113,24 +150,31 @@ const LoginScreen = ({ route }) => {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1 }}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View className="flex-1 bg-background">
-
           {/* ── Hero Image ── */}
-          <View style={{ height: HERO_HEIGHT }} className="w-full overflow-hidden">
+          <View
+            style={{ height: HERO_HEIGHT }}
+            className="w-full overflow-hidden"
+          >
             <View className="absolute inset-0 bg-secondary" />
             <Animated.Image
-              source={require('../../assets/login_hero.png')}
-              style={{ width: '100%', height: '100%', opacity: imageOpacity, position: 'absolute' }}
+              source={require("../../assets/login_hero.png")}
+              style={{
+                width: "100%",
+                height: "100%",
+                opacity: imageOpacity,
+                position: "absolute",
+              }}
               resizeMode="cover"
               onLoad={handleImageLoad}
             />
             <LinearGradient
-              colors={['transparent', 'rgba(248,250,246,0.5)', '#F8FAF6']}
+              colors={["transparent", "rgba(248,250,246,0.5)", "#F8FAF6"]}
               locations={[0.1, 0.6, 1]}
               style={StyleSheet.absoluteFill}
             />
@@ -170,7 +214,7 @@ const LoginScreen = ({ route }) => {
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
-              rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
+              rightIcon={showPassword ? "eye-off-outline" : "eye-outline"}
               onRightIconPress={() => setShowPassword(!showPassword)}
             />
 
@@ -184,7 +228,7 @@ const LoginScreen = ({ route }) => {
               onPress={handleLogin}
               disabled={loading}
               style={{ shadowColor: COLORS.primary }}
-              className={`bg-primary rounded-[20px] h-[60px] items-center justify-center shadow-lg mb-8 ${loading ? 'opacity-70' : ''}`}
+              className={`bg-primary rounded-[20px] h-[60px] items-center justify-center shadow-lg mb-8 ${loading ? "opacity-70" : ""}`}
               activeOpacity={0.85}
             >
               {loading ? (
@@ -194,7 +238,12 @@ const LoginScreen = ({ route }) => {
                   <Text className="text-white text-[17px] font-extrabold tracking-wide">
                     {STRINGS.AUTH.LOGIN_BUTTON}
                   </Text>
-                  <Ionicons name="arrow-forward" size={20} color="white" style={{ marginLeft: 8 }} />
+                  <Ionicons
+                    name="arrow-forward"
+                    size={20}
+                    color="white"
+                    style={{ marginLeft: 8 }}
+                  />
                 </View>
               )}
             </TouchableOpacity>
@@ -204,7 +253,7 @@ const LoginScreen = ({ route }) => {
               <Text className="text-text-light text-[15px]">
                 {STRINGS.AUTH.DONT_HAVE_ACCOUNT}
               </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+              <TouchableOpacity onPress={() => navigation.navigate("Register")}>
                 <Text className="text-primary font-extrabold text-[15px] ml-1">
                   {STRINGS.AUTH.REGISTER_LINK}
                 </Text>

@@ -1,40 +1,68 @@
 // [frontend/src/screens/RegisterScreen.js]
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from "react";
 import {
-  View, Text, TextInput, TouchableOpacity, ActivityIndicator,
-  Alert, StyleSheet, Dimensions, Keyboard, Platform,
-  TouchableWithoutFeedback, Animated
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Asset } from 'expo-asset';
-import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import useAuthStore from '../store/useAuthStore';
-import { COLORS } from '../constants/Colors';
-import { STRINGS } from '../constants/Strings';
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+  Dimensions,
+  Keyboard,
+  Platform,
+  TouchableWithoutFeedback,
+  Animated,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Asset } from "expo-asset";
+import { useNavigation } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import useAuthStore from "../store/useAuthStore";
+import { COLORS } from "../constants/Colors";
+import { STRINGS } from "../constants/Strings";
 
 // Preload hero asset ngay khi module được import
-Asset.fromModule(require('../../assets/register_hero.png')).downloadAsync();
+Asset.fromModule(require("../../assets/register_hero.png")).downloadAsync();
 
-const { height } = Dimensions.get('window');
+const { height } = Dimensions.get("window");
 const HERO_HEIGHT = height * 0.3;
 
 // ─────────────────────────────────────────────
 // Sub-component: AuthInput với focus animation
 // ─────────────────────────────────────────────
-const AuthInput = ({ icon, label, value, onChangeText, placeholder, secureTextEntry, keyboardType, autoCapitalize, rightIcon, onRightIconPress }) => {
+const AuthInput = ({
+  icon,
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  secureTextEntry,
+  keyboardType,
+  autoCapitalize,
+  rightIcon,
+  onRightIconPress,
+}) => {
   const [isFocused, setIsFocused] = useState(false);
   const borderAnim = useRef(new Animated.Value(0)).current;
 
   const handleFocus = () => {
     setIsFocused(true);
-    Animated.timing(borderAnim, { toValue: 1, duration: 200, useNativeDriver: false }).start();
+    Animated.timing(borderAnim, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
   };
   const handleBlur = () => {
     setIsFocused(false);
-    Animated.timing(borderAnim, { toValue: 0, duration: 200, useNativeDriver: false }).start();
+    Animated.timing(borderAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
   };
 
   const borderColor = borderAnim.interpolate({
@@ -67,7 +95,7 @@ const AuthInput = ({ icon, label, value, onChangeText, placeholder, secureTextEn
           onBlur={handleBlur}
           secureTextEntry={secureTextEntry}
           keyboardType={keyboardType}
-          autoCapitalize={autoCapitalize || 'none'}
+          autoCapitalize={autoCapitalize || "none"}
         />
         {rightIcon && (
           <TouchableOpacity onPress={onRightIconPress} className="p-1">
@@ -87,10 +115,10 @@ const RegisterScreen = () => {
   const insets = useSafeAreaInsets();
   const imageOpacity = useRef(new Animated.Value(0)).current;
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -99,7 +127,9 @@ const RegisterScreen = () => {
 
   const handleImageLoad = () => {
     Animated.timing(imageOpacity, {
-      toValue: 1, duration: 300, useNativeDriver: true,
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
     }).start();
   };
 
@@ -110,17 +140,16 @@ const RegisterScreen = () => {
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert(STRINGS.AUTH.VALIDATION_ERROR, 'Passwords do not match.');
+      Alert.alert(STRINGS.AUTH.VALIDATION_ERROR, "Passwords do not match.");
       return;
     }
     setLoading(true);
     const result = await register(name, email, password);
     setLoading(false);
     if (!result.success) {
-      Alert.alert('Registration Failed', result.message);
-    } else {
-      // Chuyển hướng ngay sang màn Login và điền sẵn email
-      navigation.navigate('Login', { email });
+      Alert.alert("Registration Failed", result.message);
+    } else if (!result.user || !result.token) {
+      navigation.replace("Login", { email });
     }
   };
 
@@ -129,22 +158,30 @@ const RegisterScreen = () => {
       <KeyboardAwareScrollView
         enableOnAndroid={true}
         extraHeight={120} // Khoảng đệm đẩy lên cao hơn bàn phím (đơn vị pixel)
-        extraScrollHeight={Platform.OS === 'ios' ? 20 : 0}
+        extraScrollHeight={Platform.OS === "ios" ? 20 : 0}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         className="flex-1"
       >
         {/* ── Hero Image ── */}
-        <View style={{ height: HERO_HEIGHT }} className="w-full overflow-hidden">
+        <View
+          style={{ height: HERO_HEIGHT }}
+          className="w-full overflow-hidden"
+        >
           <View className="absolute inset-0 bg-accent" />
           <Animated.Image
-            source={require('../../assets/register_hero.png')}
-            style={{ width: '100%', height: '100%', opacity: imageOpacity, position: 'absolute' }}
+            source={require("../../assets/register_hero.png")}
+            style={{
+              width: "100%",
+              height: "100%",
+              opacity: imageOpacity,
+              position: "absolute",
+            }}
             resizeMode="cover"
             onLoad={handleImageLoad}
           />
           <LinearGradient
-            colors={['transparent', 'rgba(248,250,246,0.5)', '#F8FAF6']}
+            colors={["transparent", "rgba(248,250,246,0.5)", "#F8FAF6"]}
             locations={[0.1, 0.6, 1]}
             style={StyleSheet.absoluteFill}
           />
@@ -193,7 +230,7 @@ const RegisterScreen = () => {
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
-            rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
+            rightIcon={showPassword ? "eye-off-outline" : "eye-outline"}
             onRightIconPress={() => setShowPassword(!showPassword)}
           />
 
@@ -204,8 +241,10 @@ const RegisterScreen = () => {
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry={!showConfirmPassword}
-            rightIcon={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
-            onRightIconPress={() => setShowConfirmPassword(!showConfirmPassword)}
+            rightIcon={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+            onRightIconPress={() =>
+              setShowConfirmPassword(!showConfirmPassword)
+            }
           />
 
           {/* CTA Button */}
@@ -213,7 +252,7 @@ const RegisterScreen = () => {
             onPress={handleRegister}
             disabled={loading}
             style={{ shadowColor: COLORS.primary }}
-            className={`bg-primary rounded-[20px] h-[60px] items-center justify-center shadow-lg mt-2 mb-7 ${loading ? 'opacity-70' : ''}`}
+            className={`bg-primary rounded-[20px] h-[60px] items-center justify-center shadow-lg mt-2 mb-7 ${loading ? "opacity-70" : ""}`}
             activeOpacity={0.85}
           >
             {loading ? (
@@ -227,8 +266,10 @@ const RegisterScreen = () => {
 
           {/* Footer */}
           <View className="flex-row justify-center items-center">
-            <Text className="text-text-light text-[15px]">Already have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+            <Text className="text-text-light text-[15px]">
+              Already have an account?{" "}
+            </Text>
+            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
               <Text className="text-primary font-extrabold text-[15px]">
                 {STRINGS.AUTH.LOGIN_BUTTON}
               </Text>

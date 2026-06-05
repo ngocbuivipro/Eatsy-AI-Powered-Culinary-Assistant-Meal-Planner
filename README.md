@@ -1,86 +1,280 @@
-# 🍽️ Eatsy – AI-powered Meal Planning Assistant
+# 🍽️ Eatsy — AI-Powered Culinary Assistant & Meal Planner
 
-Your documentation is a direct reflection of your software, so hold it to the same standards.
+> **Eatsy** is a cross-platform mobile application that helps users decide *what to cook* based on the ingredients they already have — powered by Google Gemini AI and the Spoonacular recipe API.
 
-## 🌟 Highlights
-- Suggest dishes based on available ingredients
-- AI assistant for cooking questions & substitutions
-- Personalized recommendations based on user preferences
-- Filter recipes by diet, calories, and difficulty
-- Simple meal planning for daily use
+---
 
-## ℹ️ Overview
+## 📑 Table of Contents
 
-Eatsy is a meal planning and cooking assistant designed to help users decide what to cook based on what they already have.
+- [Overview](#-overview)
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Architecture](#-architecture)
+- [Project Structure](#-project-structure)
+- [Getting Started](#-getting-started)
+- [Environment Variables](#-environment-variables)
+- [API Endpoints](#-api-endpoints)
+- [Authors](#-authors)
 
-The project focuses on solving a common problem: “What should I cook today with these ingredients?” — while also reducing food waste and supporting personalized eating habits.
+---
 
-Instead of relying only on static recipes, Eatsy integrates AI to handle natural language input and provide more flexible, context-aware suggestions.
+## 📖 Overview
 
-## ✍️ Authors
+Eatsy solves a universal everyday problem: *"What should I cook today with what I have?"*
 
-- Ngoc Bui – IT Student
-- (Team project – academic purpose)
+Instead of scrolling through static recipe websites, users input the ingredients sitting in their fridge and pantry. Eatsy's AI layer — built on **Google Gemini** — processes natural language, suggests contextually relevant recipes, handles cooking Q&A, and even proposes ingredient substitutions in real time.
 
-## 🚀 Usage
+The app also includes a **personal pantry tracker**, **meal planning**, **diet-aware recipe filtering**, and a **conversational AI chef** that users can chat with freely.
 
-Example use cases:
+---
 
-*Input ingredients:*
-`chicken, tomato, onion`
+## ✨ Features
 
-→ Get suggested dishes with instructions
+| Feature | Description |
+|---|---|
+| 🧠 **AI Chat Assistant** | Ask cooking questions, get substitutions, receive tips — powered by Gemini |
+| 🥘 **Ingredient-Based Recipe Search** | Input available ingredients and get matching recipes via Spoonacular |
+| 🛒 **Pantry Management** | Track ingredients you own; auto-suggest recipes from your pantry |
+| 📅 **Meal Planning** | Plan meals by day/week and manage your personal meal schedule |
+| 🔍 **Recipe Discovery** | Browse by category, filter by diet, calories, and difficulty |
+| 🔐 **Authentication** | Email/password sign-up & Google OAuth sign-in |
+| 👤 **User Profiles** | Manage dietary preferences, allergies, and cooking skill level |
+| 🌙 **Onboarding Flow** | Personalised onboarding to capture user preferences on first launch |
 
-*Ask AI:*
-`"I don’t have butter, what can I replace it with?"`
+---
 
-→ Receive substitution suggestions instantly
+## 🛠️ Tech Stack
 
-## ⬇️ Installation
+### Frontend
+| Technology | Purpose |
+|---|---|
+| **React Native** (Expo ~54) | Cross-platform mobile UI (iOS & Android) |
+| **NativeWind / TailwindCSS** | Utility-first styling |
+| **React Navigation** | Stack & bottom-tab navigation |
+| **Zustand** | Lightweight global state management |
+| **Axios** | HTTP client for API calls |
+| **Expo Linear Gradient / Blur** | Visual polish and glassmorphism effects |
+| **React Native Reanimated** | Smooth animations |
+
+### Backend
+| Technology | Purpose |
+|---|---|
+| **Node.js + Express 5** | REST API server |
+| **MongoDB + Mongoose** | Document database & ODM |
+| **Google Generative AI SDK** | Gemini AI integration |
+| **Spoonacular API** | Recipe data & nutrition info |
+| **JWT + bcryptjs** | Authentication & password hashing |
+| **Google Auth Library** | Google OAuth token verification |
+| **Morgan** | HTTP request logging |
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────┐
+│        React Native App         │  ← Expo (iOS / Android / Web)
+│  Screens · Navigation · Zustand │
+└────────────────┬────────────────┘
+                 │ REST API (Axios)
+                 ▼
+┌─────────────────────────────────┐
+│       Express.js Backend        │  ← Node.js + Express 5
+│  Routes · Controllers · Middleware│
+└──────┬─────────────┬────────────┘
+       │             │
+       ▼             ▼
+┌──────────┐  ┌──────────────────────┐
+│ MongoDB  │  │   External APIs      │
+│ Mongoose │  │  Gemini AI           │
+│ (Atlas)  │  │  Spoonacular Recipes │
+│          │  │  Google OAuth        │
+└──────────┘  └──────────────────────┘
+```
+
+---
+
+## 📁 Project Structure
+
+```
+eatsy/
+├── backend/
+│   ├── src/
+│   │   ├── app.js                  # Express app setup
+│   │   ├── server.js               # Entry point
+│   │   ├── config/                 # DB connection, env config
+│   │   ├── middleware/             # Auth, error handling
+│   │   ├── modules/
+│   │   │   ├── ai-assistant/       # Gemini AI chat routes & controllers
+│   │   │   ├── recipe/             # Recipe search & management
+│   │   │   ├── ingredient/         # Ingredient data
+│   │   │   ├── pantry/             # Pantry CRUD
+│   │   │   ├── meal-planning/      # Meal plan management
+│   │   │   ├── category/           # Recipe categories
+│   │   │   └── user/               # User profile & auth
+│   │   ├── seeds/                  # Database seed scripts
+│   │   └── utils/                  # Helper utilities
+│   ├── .env.example                # Environment variable template
+│   └── package.json
+│
+└── frontend/
+    ├── src/
+    │   ├── api/                    # Axios API client & service calls
+    │   ├── components/             # Reusable UI components
+    │   ├── screens/
+    │   │   ├── auth/               # Login, Register screens
+    │   │   ├── home/               # Home / dashboard
+    │   │   ├── chat/               # AI chat assistant screen
+    │   │   ├── recipe/             # Recipe detail & browse
+    │   │   ├── pantry/             # Pantry management screen
+    │   │   ├── meal-planning/      # (via backend module)
+    │   │   ├── profile/            # User profile & settings
+    │   │   └── onboarding/         # First-launch onboarding
+    │   ├── navigation/             # React Navigation setup
+    │   ├── store/                  # Zustand stores (auth, etc.)
+    │   ├── constants/              # App-wide constants & theme
+    │   └── utils/                  # Utility functions
+    ├── App.js
+    └── package.json
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js **v18+**
+- npm **v9+**
+- Expo CLI (`npm install -g expo-cli`)
+- MongoDB Atlas account (or local MongoDB instance)
+- Google Gemini API key — [Get one here](https://aistudio.google.com/app/apikey)
+- Spoonacular API key — [Get one here](https://spoonacular.com/food-api)
+
+---
+
+### 1. Clone the repository
+
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/ngocbuivipro/Eatsy-AI-Powered-Culinary-Assistant-Meal-Planner.git
+cd Eatsy-AI-Powered-Culinary-Assistant-Meal-Planner
+```
+
+---
+
+### 2. Backend Setup
+
+```bash
 cd backend
 npm install
 ```
 
-Create `.env` from `.env.example` and fill in required values.
+Copy the environment template and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+> See [Environment Variables](#-environment-variables) for the full list of required keys.
+
+Start the development server:
 
 ```bash
 npm run dev
 ```
 
-Server will run at:
-`http://localhost:5000`
+The API will be available at `http://localhost:5050`
 
-Contact project owner to get `.env` configuration if needed.
+*(Optional) Seed the database with sample data:*
 
-## 🏗️ Tech Stack
+```bash
+npm run seed
+```
 
-**Frontend**
-- React Native
-- React.js (optional web)
-- NativeWind
+---
 
-**Backend**
-- Node.js + Express
+### 3. Frontend Setup
 
-**Database**
-- MongoDB
+```bash
+cd frontend
+npm install
+```
 
-**AI**
-- OpenAI API / Google Gemini
+Start the Expo development server:
 
-## 🧠 Architecture
-- **Frontend**: handles UI and user interaction
-- **Backend**: manages business logic and APIs
-- **Database**: stores user data and recipes
-- **AI layer**: processes natural language and generates suggestions
+```bash
+npm start
+```
 
-## 💭 Feedback and Contributing
+Then press:
+- `a` — open on Android emulator / device
+- `i` — open on iOS simulator (macOS only)
+- `w` — open in web browser
 
-This project is developed as part of an academic assignment.
+> **Note:** The frontend connects to the backend via the `API_BASE_URL` configured in `src/api/`. Update this to point to your backend's IP/URL if running on a physical device.
 
-Feel free to:
-- Open issues for bugs or suggestions
-- Propose improvements
-- Contribute if needed
+---
+
+## 🔑 Environment Variables
+
+All environment variables are configured in `backend/.env`. Create this file from the provided template:
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+| Variable | Required | Description |
+|---|:---:|---|
+| `PORT` | ✅ | Port the Express server listens on (default: `5050`) |
+| `MONGO_URI` | ✅ | MongoDB connection string (Atlas URI or `mongodb://localhost:27017/eatsy`) |
+| `JWT_SECRET` | ✅ | Secret key for signing JSON Web Tokens — use a long random string |
+| `GEMINI_API_KEY` | ✅ | Google Gemini API key for the AI chat assistant |
+| `SPOONACULAR_API_KEY` | ✅ | Spoonacular API key for recipe search & data |
+| `GOOGLE_CLIENT_ID` | ⚠️ | Google OAuth client ID (required for Google Sign-In) |
+| `USE_MOCK_DATA` | ❌ | Set to `true` to use local mock data instead of live API calls (dev only) |
+
+---
+
+## 📡 API Endpoints
+
+Base URL: `http://localhost:5050/api`
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/user/register` | Register a new user |
+| `POST` | `/user/login` | Login with email & password |
+| `POST` | `/user/google` | Login / register via Google OAuth |
+| `GET` | `/user/profile` | Get current user's profile |
+| `PUT` | `/user/profile` | Update user preferences |
+| `GET` | `/recipe` | Browse & search recipes |
+| `GET` | `/recipe/:id` | Get recipe details |
+| `GET` | `/category` | List recipe categories |
+| `GET/POST` | `/pantry` | Get / add pantry ingredients |
+| `DELETE` | `/pantry/:id` | Remove an ingredient from pantry |
+| `GET/POST` | `/meal-planning` | Get / create meal plans |
+| `POST` | `/ai-assistant/chat` | Send a message to the Gemini AI chef |
+| `GET` | `/ingredient` | Search ingredient database |
+
+> 🔒 Most endpoints require a valid JWT token in the `Authorization: Bearer <token>` header.
+
+---
+
+## 👥 Authors
+
+| Name | Role |
+|---|---|
+| **Ngoc Bui** | Full-stack Developer, Project Lead |
+
+*Developed as a final project for the Software Systems 2 course — HCMUTE, CLC03.*
+
+---
+
+## 📄 License
+
+This project is developed for **academic purposes** as part of the SS2 course at HCMUTE.
+
+---
+
+<p align="center">
+  Made with ❤️ by the Eatsy team · HCMUTE SS2 CLC03
+</p>
