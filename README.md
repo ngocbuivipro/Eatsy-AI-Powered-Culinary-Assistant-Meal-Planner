@@ -264,16 +264,16 @@ Base URL: `http://localhost:5050/api`
 | **Vũ Thị Thanh Mai** | UI/UX Design and Frontend Development |
 | **Đỗ Thị Chúc Vy** | Frontend UI Implementation and Screen Design |
 
-*Developed as a final project for the Software Systems 2 course — HCMUTE, CLC03.*
+*Developed as a final project for the SS2 course — FIT, CLC03.*
 
 ---
 
 ## 📄 License
 
-This project is developed for **academic purposes** as part of the SS2 course at HCMUTE.
+This project is developed for **academic purposes** as part of the SS2 course at FIT.
 
 ---
 
 <p align="center">
-  Made with ❤️ by the Eatsy team · HCMUTE SS2 CLC03
+  Made with hand by the Eatsy team · FIT SS2 CLC03
 </p>
