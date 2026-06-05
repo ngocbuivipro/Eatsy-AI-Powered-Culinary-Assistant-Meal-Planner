@@ -78,10 +78,10 @@ The app also includes a **personal pantry tracker**, **meal planning**, **diet-a
 └────────────────┬────────────────┘
                  │ REST API (Axios)
                  ▼
-┌─────────────────────────────────┐
-│       Express.js Backend        │  ← Node.js + Express 5
-│  Routes · Controllers · Middleware│
-└──────┬─────────────┬────────────┘
+┌─────────────────────────────────────┐
+│       Express.js Backend            │  ← Node.js + Express 5
+│  Routes · Controllers · Middleware  │
+└──────┬─────────────┬────────────────┘
        │             │
        ▼             ▼
 ┌──────────┐  ┌──────────────────────┐
@@ -249,9 +249,6 @@ Base URL: `http://localhost:5050/api`
 | `GET` | `/recipe` | Browse & search recipes |
 | `GET` | `/recipe/:id` | Get recipe details |
 | `GET` | `/category` | List recipe categories |
-| `GET/POST` | `/pantry` | Get / add pantry ingredients |
-| `DELETE` | `/pantry/:id` | Remove an ingredient from pantry |
-| `GET/POST` | `/meal-planning` | Get / create meal plans |
 | `POST` | `/ai-assistant/chat` | Send a message to the Gemini AI chef |
 | `GET` | `/ingredient` | Search ingredient database |
 
@@ -263,7 +260,9 @@ Base URL: `http://localhost:5050/api`
 
 | Name | Role |
 |---|---|
-| **Ngoc Bui** | Full-stack Developer, Project Lead |
+| **Ngoc Bui** | System Architecture, Backend Development, and AI Integration |
+| **Vũ Thị Thanh Mai** | UI/UX Design and Frontend Development |
+| **Đỗ Thị Chúc Vy** | Frontend UI Implementation and Screen Design |
 
 *Developed as a final project for the Software Systems 2 course — HCMUTE, CLC03.*
 
