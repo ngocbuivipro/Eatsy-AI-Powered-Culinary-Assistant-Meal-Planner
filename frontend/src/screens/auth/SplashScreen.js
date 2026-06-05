@@ -1,8 +1,8 @@
-// [frontend/src/screens/SplashScreen.js]
+// [frontend/src/screens/auth/SplashScreen.js]
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../constants/Colors';
+import { COLORS } from '../../constants/Colors';
 
 const { width } = Dimensions.get('window');
 

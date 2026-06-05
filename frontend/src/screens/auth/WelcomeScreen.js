@@ -1,11 +1,11 @@
-// [frontend/src/screens/WelcomeScreen.js]
+// [frontend/src/screens/auth/WelcomeScreen.js]
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import LoginBottomSheet from '../components/login/LoginBottomSheet';
-import { COLORS } from '../constants/Colors';
-import { STRINGS } from '../constants/Strings';
+import LoginBottomSheet from '../../components/login/LoginBottomSheet';
+import { COLORS } from '../../constants/Colors';
+import { STRINGS } from '../../constants/Strings';
 
 const { height } = Dimensions.get('window');
 
@@ -27,13 +27,13 @@ const WelcomeScreen = () => {
         <View style={{ flex: 5.5, alignItems: 'center', justifyContent: 'center', paddingTop: 20 }}>
           <View style={[styles.phoneContainer, { shadowColor: '#000' }]}>
             <Image 
-              source={require('../assets/images/phoneframe.png')} 
+              source={require('../../assets/images/phoneframe.png')} 
               style={styles.phoneFrame}
               resizeMode="stretch"
             />
             <View style={[styles.screenContainer, { backgroundColor: COLORS.white }]}>
               <Image 
-                source={require('../assets/images/welcome_food.png')} 
+                source={require('../../assets/images/welcome_food.png')} 
                 style={styles.foodImage}
                 resizeMode="cover"
               />

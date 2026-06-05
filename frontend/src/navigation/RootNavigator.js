@@ -5,11 +5,11 @@ import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import TabNavigator from './TabNavigator';
 import AuthNavigator from './AuthNavigator';
-import GreetingScreen from '../screens/GreetingScreen';
-import OnboardingScreen from '../screens/OnboardingScreen'; 
-import RecipeDetailsScreen from '../screens/RecipeDetailsScreen';
-import EditProfileScreen from '../screens/EditProfileScreen';
-import SplashScreen from '../screens/SplashScreen';
+import GreetingScreen from '../screens/onboarding/GreetingScreen';
+import OnboardingScreen from '../screens/onboarding/OnboardingScreen'; 
+import RecipeDetailsScreen from '../screens/recipe/RecipeDetailsScreen';
+import EditProfileScreen from '../screens/profile/EditProfileScreen';
+import SplashScreen from '../screens/auth/SplashScreen';
 import useAuthStore from '../store/useAuthStore';
 import { COLORS } from '../constants/Colors';
 

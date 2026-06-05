@@ -1,4 +1,4 @@
-// [frontend/src/screens/RecipeDetailsScreen.js]
+// [frontend/src/screens/recipe/RecipeDetailsScreen.js]
 import React, { useEffect, useState, useRef } from 'react';
 import { 
   View, 
@@ -21,13 +21,13 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import { getHighResImage } from '../utils/imageHelper';
-import apiClient from '../api/client';
-import { COLORS } from '../constants/Colors';
-import { STRINGS } from '../constants/Strings';
-import TourTarget from '../components/tour/TourTarget';
-import useTourStore from '../store/useTourStore';
-import { APP_TOURS } from '../constants/AppConstants';
+import { getHighResImage } from '../../utils/imageHelper';
+import apiClient from '../../api/client';
+import { COLORS } from '../../constants/Colors';
+import { STRINGS } from '../../constants/Strings';
+import TourTarget from '../../components/tour/TourTarget';
+import useTourStore from '../../store/useTourStore';
+import { APP_TOURS } from '../../constants/AppConstants';
 
 const { width, height } = Dimensions.get('window');
 const HERO_HEIGHT = height * 0.42;

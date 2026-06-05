@@ -4,10 +4,10 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Platform } from 'react-native';
 import { House, CookingPot, MessageCircleCode, User } from 'lucide-react-native';
 
-import HomeScreen from '../screens/HomeScreen';
+import HomeScreen from '../screens/home/HomeScreen';
 import PantryNavigator from './PantryNavigator';
-import ChatScreen from '../screens/ChatScreen';
-import ProfileScreen from '../screens/ProfileScreen';
+import ChatScreen from '../screens/chat/ChatScreen';
+import ProfileScreen from '../screens/profile/ProfileScreen';
 import { COLORS } from '../constants/Colors';
 import TourTarget from '../components/tour/TourTarget';
 

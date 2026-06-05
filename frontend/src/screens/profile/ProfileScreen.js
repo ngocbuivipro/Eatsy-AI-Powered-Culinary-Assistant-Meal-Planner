@@ -1,5 +1,5 @@
-// [frontend/src/screens/ProfileScreen.js]
-import React, { useState } from 'react';
+// [frontend/src/screens/profile/ProfileScreen.js]
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,9 +16,12 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import useAuthStore from '../store/useAuthStore';
-import { COLORS } from '../constants/Colors';
-import { STRINGS } from '../constants/Strings';
+import useAuthStore from '../../store/useAuthStore';
+import { COLORS } from '../../constants/Colors';
+import { STRINGS } from '../../constants/Strings';
+import { APP_TOURS } from '../../constants/AppConstants';
+import useTourStore from '../../store/useTourStore';
+import TourTarget from '../../components/tour/TourTarget';
 
 const { width, height } = Dimensions.get('window');
 
@@ -102,6 +105,12 @@ const InfoModal = ({ visible, onClose, title, children }) => (
 const ProfileScreen = ({ navigation }) => {
   const { user, logout } = useAuthStore();
   const [loggingOut, setLoggingOut] = useState(false);
+  const { startTour } = useTourStore();
+
+  useEffect(() => {
+    const t = setTimeout(() => startTour('profile', APP_TOURS.PROFILE), 500);
+    return () => clearTimeout(t);
+  }, []);
   
   // States cho các Modal và Toggle (Giao diện)
   const [infoModal, setInfoModal] = useState({ visible: false, title: '', contentKey: null });
@@ -213,13 +222,15 @@ const ProfileScreen = ({ navigation }) => {
         </View>
 
         {/* Stats Row */}
-        <View style={[styles.statsRow, { backgroundColor: COLORS.white, borderColor: COLORS.border }]}>
+        <TourTarget tourKey="profile_stats">
+          <View style={[styles.statsRow, { backgroundColor: COLORS.white, borderColor: COLORS.border }]}>
           <StatCard icon="flame-outline" value={`${calories}`} label="Daily kcal" onPress={() => openModal('Nutritional Target', 'kcal')} />
           <View style={[styles.statsDivider, { backgroundColor: COLORS.border }]} />
           <StatCard icon="bookmark-outline" value="8" label="Saved" onPress={() => navigation.navigate('DiscoveryTab')} />
           <View style={[styles.statsDivider, { backgroundColor: COLORS.border }]} />
           <StatCard icon="sparkles-outline" value="AI" label="Coach" onPress={() => navigation.navigate('AIChatTab')} />
-        </View>
+          </View>
+        </TourTarget>
 
         {/* Sections */}
         <View style={styles.section}>

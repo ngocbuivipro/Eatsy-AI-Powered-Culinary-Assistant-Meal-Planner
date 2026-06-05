@@ -1,4 +1,4 @@
-// [frontend/src/screens/LoginScreen.js]
+// [frontend/src/screens/auth/LoginScreen.js]
 import React, { useState, useRef, useEffect } from "react";
 import {
   View,
@@ -20,12 +20,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Asset } from "expo-asset";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import useAuthStore from "../store/useAuthStore";
-import { COLORS } from "../constants/Colors";
-import { STRINGS } from "../constants/Strings";
+import useAuthStore from "../../store/useAuthStore";
+import { COLORS } from "../../constants/Colors";
+import { STRINGS } from "../../constants/Strings";
 
 // Preload hero asset ngay khi module được import
-Asset.fromModule(require("../../assets/login_hero.png")).downloadAsync();
+Asset.fromModule(require("../../../assets/login_hero.png")).downloadAsync();
 
 const { height } = Dimensions.get("window");
 const HERO_HEIGHT = height * 0.3;
@@ -163,7 +163,7 @@ const LoginScreen = ({ route }) => {
           >
             <View className="absolute inset-0 bg-secondary" />
             <Animated.Image
-              source={require("../../assets/login_hero.png")}
+              source={require("../../../assets/login_hero.png")}
               style={{
                 width: "100%",
                 height: "100%",

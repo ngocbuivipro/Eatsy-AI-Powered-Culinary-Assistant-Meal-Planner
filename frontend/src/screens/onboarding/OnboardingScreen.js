@@ -1,4 +1,4 @@
-// [frontend/src/screens/OnboardingScreen.js]
+// [frontend/src/screens/onboarding/OnboardingScreen.js]
 import React, { useState, useRef } from 'react';
 import {
   View,
@@ -15,9 +15,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import useAuthStore from '../store/useAuthStore';
-import { COLORS } from '../constants/Colors';
-import { STRINGS } from '../constants/Strings';
+import useAuthStore from '../../store/useAuthStore';
+import { COLORS } from '../../constants/Colors';
+import { STRINGS } from '../../constants/Strings';
 import { 
   ONBOARDING_GOALS, 
   DIET_TYPES, 
@@ -25,9 +25,9 @@ import {
   CUISINE_OPTIONS, 
   MEASUREMENT_SYSTEMS,
   APP_CONFIG 
-} from '../constants/AppConstants';
-import { ENDPOINTS } from '../constants/Endpoints';
-import apiClient from '../api/client';
+} from '../../constants/AppConstants';
+import { ENDPOINTS } from '../../constants/Endpoints';
+import apiClient from '../../api/client';
 
 const { width } = Dimensions.get('window');
 

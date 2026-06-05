@@ -1,4 +1,4 @@
-// [frontend/src/screens/ChatScreen.js]
+// [frontend/src/screens/chat/ChatScreen.js]
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
@@ -17,9 +17,12 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import apiClient from '../api/client';
-import { COLORS } from '../constants/Colors';
-import { STRINGS } from '../constants/Strings';
+import apiClient from '../../api/client';
+import { COLORS } from '../../constants/Colors';
+import { STRINGS } from '../../constants/Strings';
+import { APP_TOURS } from '../../constants/AppConstants';
+import useTourStore from '../../store/useTourStore';
+import TourTarget from '../../components/tour/TourTarget';
 
 const { width } = Dimensions.get('window');
 
@@ -119,6 +122,7 @@ const ChatScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
+  const { startTour } = useTourStore();
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -129,6 +133,11 @@ const ChatScreen = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
+
+  useEffect(() => {
+    const t = setTimeout(() => startTour('chat', APP_TOURS.CHAT), 700);
+    return () => clearTimeout(t);
+  }, []);
 
   const sendMessage = async () => {
     const text = input.trim();
@@ -224,7 +233,8 @@ const ChatScreen = () => {
         >
           {/* Quick Prompts */}
           {messages.length === 1 && (
-            <View style={styles.quickPromptContainer}>
+            <TourTarget tourKey="chat_quick_prompts">
+              <View style={styles.quickPromptContainer}>
               <Text style={[styles.quickPromptTitle, { color: COLORS.placeholder }]}>
                 {STRINGS.AI.QUICK_PROMPT_TITLE || "SUGGESTED QUESTIONS"}
               </Text>
@@ -241,7 +251,8 @@ const ChatScreen = () => {
                   <Text style={[styles.quickPromptText, { color: COLORS.text }]}>{prompt}</Text>
                 </TouchableOpacity>
               ))}
-            </View>
+              </View>
+            </TourTarget>
           )}
 
           {messages.map((msg) =>
@@ -256,8 +267,9 @@ const ChatScreen = () => {
         </ScrollView>
 
         {/* Input Bar */}
-        <View style={[styles.inputBarWrapper, { borderTopColor: COLORS.border, backgroundColor: 'rgba(248,250,246,0.98)' }]}>
-          <View style={[styles.inputBar, { backgroundColor: COLORS.white, borderColor: COLORS.border, shadowColor: COLORS.primary }]}>
+        <TourTarget tourKey="chat_input">
+          <View style={[styles.inputBarWrapper, { borderTopColor: COLORS.border, backgroundColor: 'rgba(248,250,246,0.98)' }]}>
+            <View style={[styles.inputBar, { backgroundColor: COLORS.white, borderColor: COLORS.border, shadowColor: COLORS.primary }]}>
             <TextInput
               ref={inputRef}
               style={[styles.textInput, { color: COLORS.text }]}
@@ -285,6 +297,7 @@ const ChatScreen = () => {
             </TouchableOpacity>
           </View>
         </View>
+      </TourTarget>
       </View>
     </KeyboardAvoidingView>
   );

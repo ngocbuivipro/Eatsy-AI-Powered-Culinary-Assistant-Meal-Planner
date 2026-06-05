@@ -12,8 +12,8 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import useAuthStore from '../store/useAuthStore';
-import apiClient from '../api/client';
+import useAuthStore from '../../store/useAuthStore';
+import apiClient from '../../api/client';
 
 // ─── Option Pill (single-select) ─────────────────────────────────────────────
 const OptionPill = ({ label, selected, onPress }) => (

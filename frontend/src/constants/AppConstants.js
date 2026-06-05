@@ -58,49 +58,82 @@ export const APP_TOURS = {
   HOME: [
     {
       targetId: 'tab_home',
-      title: 'Khám phá Eatsy',
-      description: 'Tab Home là nơi tập hợp những gợi ý món ăn thông minh nhất dành riêng cho bạn.',
+      title: 'Discover Eatsy',
+      description: 'The Home tab contains personalized meal suggestions curated just for you.',
     },
     {
       targetId: 'home_trending',
-      title: 'Gợi ý hôm nay',
-      description: 'Bạn không biết ăn gì? Hãy thử đổi sang món khác hoặc bắt đầu nấu ngay từ đây.',
+      title: "Today's Picks",
+      description: 'Not sure what to eat? Try a suggested dish or start cooking from here.',
     },
     {
       targetId: 'home_curated',
-      title: 'Dành riêng cho bạn',
-      description: 'Nếu những món trên chưa hợp ý, hãy xem thêm danh sách món ăn đa dạng được chúng tôi lựa chọn kỹ lưỡng dưới này.',
+      title: 'Curated for You',
+      description: 'If these picks don\'t match your taste, explore the broader curated recipe list below.',
     },
   ],
   PANTRY: [
     {
       targetId: 'pantry_camera',
-      title: 'Quét tủ lạnh',
-      description: 'Chụp một bức ảnh tủ lạnh của bạn, AI sẽ tự động nhận diện và quản lý nguyên liệu giúp bạn.',
+      title: 'Scan Your Fridge',
+      description: 'Take a photo of your fridge and the AI will detect and manage your ingredients.',
+    },
+    {
+      targetId: 'pantry_action',
+      title: 'Select Ingredients',
+      description: 'Tap ingredient cards to select them, then press "Make something tasty" to find matching recipes.',
+    },
+  ],
+  PANTRY_RESULTS: [
+    {
+      targetId: 'pantry_result_primary',
+      title: 'Best Match',
+      description: 'This recipe best matches the ingredients you selected. Tap to view details.',
     },
   ],
   RECIPE: [
     {
       targetId: 'recipe_stats',
-      title: 'Thông tin cơ bản',
-      description: 'Xem nhanh thời gian nấu, độ khó và lượng calo của món ăn này.',
+      title: 'Quick Facts',
+      description: 'Quickly view cook time, difficulty, and calorie information for this recipe.',
     },
     {
       targetId: 'recipe_ingredients',
-      title: 'Nguyên liệu cần thiết',
-      description: 'Danh sách đầy đủ các nguyên liệu và định lượng cụ thể để bạn chuẩn bị.',
+      title: 'Ingredients',
+      description: 'Full list of ingredients with precise quantities to prepare the dish.',
     },
     {
       targetId: 'recipe_instructions',
-      title: 'Các bước thực hiện',
-      description: 'Hướng dẫn từng bước chi tiết để bạn hoàn thành món ăn một cách hoàn hảo.',
+      title: 'Instructions',
+      description: 'Step-by-step instructions to help you prepare the dish perfectly.',
     },
     {
       targetId: 'recipe_ai',
-      title: 'Trợ lý AI luôn sẵn sàng',
-      description: 'Bạn bị thiếu nguyên liệu hoặc muốn thay thế? Hãy hỏi Eatsy AI ngay tại đây nhé!',
+      title: 'AI Assistant Ready',
+      description: 'Missing an ingredient or want a substitution? Ask Eatsy AI right here!',
     },
   ]
+ ,
+  CHAT: [
+    {
+      targetId: 'chat_quick_prompts',
+      title: 'Quick Prompts',
+      description: 'Start quickly with one of these prompts to see how Eatsy AI responds.',
+    },
+    {
+      targetId: 'chat_input',
+      title: 'Ask the AI',
+      description: 'Type your question in the input below to start a conversation with Eatsy AI.',
+    },
+  ],
+
+  PROFILE: [
+    {
+      targetId: 'profile_stats',
+      title: 'Nutrition at a Glance',
+      description: 'See your daily kcal target and access your health tracking tools.',
+    },
+  ],
 };
 
 export const APP_CONFIG = {

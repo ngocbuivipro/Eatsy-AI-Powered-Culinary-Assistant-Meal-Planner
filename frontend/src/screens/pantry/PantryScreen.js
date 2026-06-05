@@ -1,4 +1,4 @@
-// [frontend/src/screens/PantryScreen.js]
+// [frontend/src/screens/pantry/PantryScreen.js]
 import React, { useState } from 'react';
 import { 
   View, 
@@ -13,10 +13,14 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PANTRY_CATEGORIES, INGREDIENTS_BY_CATEGORY } from '../constants/pantryData';
-import UserAvatar from '../components/common/UserAvatar';
-import { COLORS } from '../constants/Colors';
-import { STRINGS } from '../constants/Strings';
+import { PANTRY_CATEGORIES, INGREDIENTS_BY_CATEGORY } from '../../constants/pantryData';
+import UserAvatar from '../../components/common/UserAvatar';
+import { COLORS } from '../../constants/Colors';
+import { STRINGS } from '../../constants/Strings';
+import { APP_TOURS } from '../../constants/AppConstants';
+import useTourStore from '../../store/useTourStore';
+import TourTarget from '../../components/tour/TourTarget';
+import { useEffect } from 'react';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = (width - 48 - 12) / 2;
@@ -39,6 +43,13 @@ const PantryScreen = ({ navigation }) => {
   };
 
   const currentIngredients = INGREDIENTS_BY_CATEGORY[activeCategory] || [];
+  const { startTour } = useTourStore();
+
+  useEffect(() => {
+    // Khởi chạy tour pantry lần đầu khi vào màn hình
+    const t = setTimeout(() => startTour('pantry', APP_TOURS.PANTRY), 500);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
     <View style={[styles.container, { backgroundColor: COLORS.background }]}>
@@ -73,11 +84,12 @@ const PantryScreen = ({ navigation }) => {
 
       {/* Categories Tabs */}
       <View style={styles.categoriesContainer}>
-        <ScrollView 
+        <TourTarget tourKey="pantry_action">
+          <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false} 
           contentContainerStyle={styles.categoriesContent}
-        >
+          >
           {PANTRY_CATEGORIES.map(cat => {
             const isActive = activeCategory === cat.id;
             return (
@@ -101,7 +113,8 @@ const PantryScreen = ({ navigation }) => {
               </TouchableOpacity>
             );
           })}
-        </ScrollView>
+          </ScrollView>
+        </TourTarget>
       </View>
 
       {/* Ingredients Grid */}

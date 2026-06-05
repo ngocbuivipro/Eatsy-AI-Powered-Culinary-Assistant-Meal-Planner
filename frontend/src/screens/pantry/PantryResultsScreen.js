@@ -11,17 +11,26 @@ import {
   Animated
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getHighResImage } from '../utils/imageHelper';
-import apiClient from '../api/client';
+import { getHighResImage } from '../../utils/imageHelper';
+import apiClient from '../../api/client';
+import { APP_TOURS } from '../../constants/AppConstants';
+import useTourStore from '../../store/useTourStore';
+import TourTarget from '../../components/tour/TourTarget';
 
 const PantryResultsScreen = ({ route, navigation }) => {
   const { ingredients } = route.params;
   const [loading, setLoading] = useState(true);
   const [recipes, setRecipes] = useState([]);
   const [error, setError] = useState(null);
+  const { startTour } = useTourStore();
 
   useEffect(() => {
     fetchMatchedRecipes();
+  }, []);
+  
+  useEffect(() => {
+    const t = setTimeout(() => startTour('pantry_results', APP_TOURS.PANTRY_RESULTS), 500);
+    return () => clearTimeout(t);
   }, []);
 
   const fetchMatchedRecipes = async () => {

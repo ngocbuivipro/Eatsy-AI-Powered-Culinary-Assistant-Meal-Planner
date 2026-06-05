@@ -1,4 +1,4 @@
-// [frontend/src/screens/RegisterScreen.js]
+// [frontend/src/screens/auth/RegisterScreen.js]
 import React, { useState, useRef } from "react";
 import {
   View,
@@ -20,12 +20,12 @@ import { Asset } from "expo-asset";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import useAuthStore from "../store/useAuthStore";
-import { COLORS } from "../constants/Colors";
-import { STRINGS } from "../constants/Strings";
+import useAuthStore from "../../store/useAuthStore";
+import { COLORS } from "../../constants/Colors";
+import { STRINGS } from "../../constants/Strings";
 
 // Preload hero asset ngay khi module được import
-Asset.fromModule(require("../../assets/register_hero.png")).downloadAsync();
+Asset.fromModule(require("../../../assets/register_hero.png")).downloadAsync();
 
 const { height } = Dimensions.get("window");
 const HERO_HEIGHT = height * 0.3;
@@ -170,7 +170,7 @@ const RegisterScreen = () => {
         >
           <View className="absolute inset-0 bg-accent" />
           <Animated.Image
-            source={require("../../assets/register_hero.png")}
+            source={require("../../../assets/register_hero.png")}
             style={{
               width: "100%",
               height: "100%",

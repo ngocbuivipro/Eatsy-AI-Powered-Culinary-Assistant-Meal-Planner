@@ -1,17 +1,17 @@
-// [frontend/src/screens/HomeScreen.js]
+// [frontend/src/screens/home/HomeScreen.js]
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { View, ScrollView, RefreshControl, ActivityIndicator, Text, Animated } from 'react-native';
-import { getMealTypeByTime } from '../utils/timeHelper';
-import { getRandomRecipes } from '../api/recipeService';
-import HomeHeader from '../components/home/HomeHeader';
-import HeroRecipe from '../components/home/HeroRecipe';
-import CuratedGrid from '../components/home/CuratedGrid';
-import { COLORS } from '../constants/Colors';
-import { STRINGS } from '../constants/Strings';
-import TourTarget from '../components/tour/TourTarget';
-import useTourStore from '../store/useTourStore';
-import useAuthStore from '../store/useAuthStore';
-import { APP_TOURS } from '../constants/AppConstants';
+import { getMealTypeByTime } from '../../utils/timeHelper';
+import { getRandomRecipes } from '../../api/recipeService';
+import HomeHeader from '../../components/home/HomeHeader';
+import HeroRecipe from '../../components/home/HeroRecipe';
+import CuratedGrid from '../../components/home/CuratedGrid';
+import { COLORS } from '../../constants/Colors';
+import { STRINGS } from '../../constants/Strings';
+import TourTarget from '../../components/tour/TourTarget';
+import useTourStore from '../../store/useTourStore';
+import useAuthStore from '../../store/useAuthStore';
+import { APP_TOURS } from '../../constants/AppConstants';
 
 const HomeScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
