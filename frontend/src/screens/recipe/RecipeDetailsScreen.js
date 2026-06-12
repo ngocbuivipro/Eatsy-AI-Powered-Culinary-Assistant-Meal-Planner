@@ -466,7 +466,7 @@ const RecipeDetailsScreen = ({ route, navigation }) => {
               </View>
               <View style={styles.ingredientsList}>
                 {(recipe.ingredients || []).map((ing, idx) => (
-                  <View key={`ing-${ing.id || idx}`} style={[styles.ingredientItem, { borderBottomColor: COLORS.border }]}>
+                  <View key={`ing-${ing.id}-${idx}`} style={[styles.ingredientItem, { borderBottomColor: COLORS.border }]}>
                     <View style={styles.ingredientLeft}>
                       <View style={[styles.dot, { backgroundColor: COLORS.primary }]} />
                       <Text style={[styles.ingredientName, { color: COLORS.text }]}>{ing.originalName || ing.name}</Text>

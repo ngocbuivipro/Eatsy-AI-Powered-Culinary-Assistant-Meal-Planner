@@ -31,6 +31,9 @@ export const RecipeResponseDTO = (recipe) => {
     author: recipe.author,
     source: recipe.source || "spoonacular",
     averageRating: recipe.averageRating || 0,
+    usedIngredientCount: recipe.usedIngredientCount || 0,
+    missedIngredientCount: recipe.missedIngredientCount || 0,
+    missedIngredients: recipe.missedIngredients || [],
   };
 };
 

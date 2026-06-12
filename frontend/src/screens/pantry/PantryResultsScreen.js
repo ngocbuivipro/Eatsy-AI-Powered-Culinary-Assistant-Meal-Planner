@@ -60,7 +60,7 @@ const PantryResultsScreen = ({ route, navigation }) => {
         }}
       >
         <Image 
-          source={{ uri: getHighResImage(item.image) }} 
+          source={{ uri: getHighResImage(item.imageUrl || item.image) }} 
           style={styles.cardImage} 
         />
         <View style={styles.cardInfo}>
